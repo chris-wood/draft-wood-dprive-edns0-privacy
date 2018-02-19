@@ -28,8 +28,12 @@ normative:
     RFC5077:
     RFC6891:
     RFC7830:
+    RFC7858:
     I-D.ietf-dprive-padding-policy:
     I-D.ietf-tls-tls13:
+    Acs17:
+        title: Privacy-Aware Caching in Information-Centric Networking
+        target: http://ieeexplore.ieee.org/document/7874168/
 
 --- abstract
 
@@ -37,7 +41,7 @@ TODO
 
 --- middle
 
-# Introduction
+# Introduction {#introduction}
 
 The Domain Name System (DNS) {{RFC1035}} was designed to transport all messages
 in cleartext. By default, this provides no privacy, confidentiality, or 
@@ -61,6 +65,11 @@ or stale records. Malicious clients may exploit this side channel as an
 oracle to learn what records were previously requested by nearby clients.
 Source code for an attack exploiting this side channel is given in Appendix A.
 
+<!--
+TODO: comment that this is not a problem without TLS since you can see queries in the clear
+The attack here is to obviate the privacy gains of opportunistic TLS connections
+-->
+
 In this document, we propose a new EDNS(0) option that allows clients to mark
 queries as privacy sensitive. We specify recursive behavior when processing
 private queries and caching their responses. Usage of this option SHOULD only
@@ -72,6 +81,10 @@ attacks.
 
 The terms "Requestor" and "Responder" are to be interpreted as
 specified in {{RFC6891}}.
+
+# Privacy Attacks {#attacks}
+
+TODO: attack description(s)
 
 # "Private" Option
 
@@ -95,20 +108,53 @@ The OPTION-LENGTH for the "Private" option is one octet.
 
 The PRIVATE octet MUST be set to 0x01. Presence of this
 option indicates that a query is private. Other values MUST
-NOT be used. Recursives MUST drop the query if another value
-is set, as discussed in Section {{usage-recursive}}.
+NOT be used. Responders, such as recursive resolvers, MUST drop 
+the query if another value is set, as discussed in Section {{usage-recursive}}.
 
-# Stub Usage and Behavior {#usage-stub}
+# Requestor Usage and Behavior {#usage-stub}
 
-TODO
+Requestors MAY include a "Private" option for any query deemed private or 
+sensitive. This may include queries for explicitly known-to-be private 
+domains or for all domains when operating in a "private" mode. Specific
+recommendations for when to include this option are outside the scope
+of this document. 
 
-# Recursive Usage and Behavior {#usage-recursive}
+# Responder Usage and Behavior {#usage-recursive}
 
-TODO
+Responders that receive a query Q with "Private" options MUST do one
+of the following to satisfy Q:
+
+1. If response R is not cached, resolve Q using upstream 
+authoritative or recursive resolvers.
+2. If response R is cached, ignore R and attempt to resolve Q
+using upstream authoritative or recursive resolvers.
+3. If response R is cached, delay sending R to the requestor
+until some time T has passed. T is a random variable with distribution
+equal to the resolution distribution time of R.
+
+TODO: summarize rules for privacy bits in queries and different attacks
+
+## Delay Distributions
+
+T measurement and distribution estimation is critical for masking the 
+timing side channel described in Section {{introduction}}. Both should
+be chosen to maximize requestor utility while minimizing responder overhead.
+We draw on observations and experiments by {{Acs17}} in deciding these
+factors.
+
+Responders SHOULD measure query resolution time T' and use this in selecting 
+T's distribution. There are two recommended delay strategies for responders
+assuming knowledge of T', including:
+
+1. Uniform: Delay for some time T* that is selected uniformly at random
+in the range [0, T'], i.e,. with probability distribution function Pr[T = t] = 1/T'.
+2. Geometric: Delay for some time T* that is selected according to a geometric
+distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k,
+where k is a parameter for the distribution.
 
 # IANA Considerations
 
-((TODO: codepoint for handshake message type))
+((TODO: codepoint for option type))
 
 # Security Considerations
 
