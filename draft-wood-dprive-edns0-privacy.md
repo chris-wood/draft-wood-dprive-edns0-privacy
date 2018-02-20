@@ -82,9 +82,36 @@ attacks.
 The terms "Requestor" and "Responder" are to be interpreted as
 specified in {{RFC6891}}.
 
-# Privacy Attacks {#attacks}
+# Cache Probe Privacy Attack {#attacks}
 
-TODO: attack description(s)
+Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents
+eavesdroppers observing queries and responses in transit. However, as this only protects the 
+data channel, other privacy attacks remain possible. In this document, we focus soley
+on the cache probe attack outlined in Section {{introduction}}. We describe the attack
+in more detail here. 
+
+Let S be a benign client (requestor) using recursive resolver (responder) R. 
+In answering S's queries, R speaks to several authoritative servers A1,...,An. 
+Let RTT(requestor, responder) be a function that computes the average RTT for a given
+query and response between requestor and responder. For example, RTT(R,A1) is the 
+average RTT for answering a query sent by R and answered by A1. Let Delay(q, r)
+be a function that measures the delay in answering request q with response r.
+Finally, let Adv be a malicious client who wishes to learn what queries were asked by S. 
+Adv proceeds as follows. Assume Adv wants to learn if S queried for q = example.com. 
+To do so, Adv requests q from R, yielding response r, and measures d = delay(q, r). Then,
+Adv sends a random query q' in the same top-level domain (e.g., .com), yielding response r', 
+that S is unlikely to have requested, and measures d' = delay(q', r'). 
+If |d - d'| ~ 0, then Adv concludes q was not requested by S (or someone else). Otherwise,
+Adv concludes that, with some probability q was requested.
+
+Severity of this attack depends on several factors:
+
+- How many clients (stubs) are served by R.
+- What types of queries are requested by other clients of R. For example, do they require more
+recursive resolution steps to resolve? If so, this may inflate time required to answer the query. 
+
+While learning the existence of a certain query may not always constitute a privacy violation,
+it may for some clients. 
 
 # "Private" Option
 
@@ -120,6 +147,8 @@ recommendations for when to include this option are outside the scope
 of this document. 
 
 # Responder Usage and Behavior {#usage-recursive}
+
+XXX: discuss two options here.
 
 Responders that receive a query Q with "Private" options MUST do one
 of the following to satisfy Q:
