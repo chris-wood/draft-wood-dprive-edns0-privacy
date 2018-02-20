@@ -148,7 +148,38 @@ of this document.
 
 # Responder Usage and Behavior {#usage-recursive}
 
-XXX: discuss two options here.
+There are (at least) two ways responders can handle responder usage. They share
+a common principle: private queries avoid using the same cache as non-private queries. 
+This has the effect of removing side channels from private queries. The two strategies
+described here work as follows:
+
+1. Require responders to use per-client, segmented caches for private queries that are
+flushed when secure connections are torn down.
+2. Require responders to "ignore" cached responses and emulate fetch delays for queries
+(and responses) marked private. 
+
+We describe each approach in more detail below. 
+
+## Segmented Caches
+
+Responders that receive a query Q without the "Private" options may treat
+it as normal, i.e., by serving a response from cache if available. For a query Q
+with a "Private" option sent from client S, responders MUST do the following:
+
+- Index S's private cache using Q, if it exists. If response R is present, serve it to S.
+- If S's private cache does not exist, attempt to resolve Q as normal. Cache the response
+in S's private cache. 
+
+When S's connection to R is torn down, S's private cache MUST be flushed and memory released.
+Responders SHOULD apply whatever per-client caching policy is sensible to balance utility
+amongst shared (non-private) and private caches. Segmented caches introduce more memory requirements 
+for resolvers at the cost of improving client privacy.
+
+This approach is only viable when clients connect to resolvers over a session-based
+secure transport such as TLS or DTLS. Otherwise, malicious clients may flood
+resolvers with private queries and induce cache fragmentation.
+
+## Artificial Delays
 
 Responders that receive a query Q with "Private" options MUST do one
 of the following to satisfy Q:
@@ -161,9 +192,7 @@ using upstream authoritative or recursive resolvers.
 until some time T has passed. T is a random variable with distribution
 equal to the resolution distribution time of R.
 
-TODO: summarize rules for privacy bits in queries and different attacks
-
-## Delay Distributions
+### Delay Distributions
 
 T measurement and distribution estimation is critical for masking the 
 timing side channel described in Section {{introduction}}. Both should
@@ -183,11 +212,11 @@ where k is a parameter for the distribution.
 
 # IANA Considerations
 
-((TODO: codepoint for option type))
+((TODO: codepoint for option type?))
 
 # Security Considerations
 
-TODO
+TODO: discuss client selfishness (and starvation?)
 
 # Privacy Considerations
 
