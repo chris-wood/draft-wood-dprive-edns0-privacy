@@ -281,29 +281,31 @@ address {
 /*]]>*/</style>
 
 
-  <link href="#rfc.toc" rel="Contents"/>
-<link href="#rfc.section.1" rel="Chapter" title="1 Introduction"/>
-<link href="#rfc.section.2" rel="Chapter" title="2 Terminology"/>
-<link href="#rfc.section.3" rel="Chapter" title="3 Privacy Attacks"/>
-<link href="#rfc.section.4" rel="Chapter" title="4 &#x201C;Private&#x201D; Option"/>
-<link href="#rfc.section.5" rel="Chapter" title="5 Requestor Usage and Behavior"/>
-<link href="#rfc.section.6" rel="Chapter" title="6 Responder Usage and Behavior"/>
-<link href="#rfc.section.6.1" rel="Chapter" title="6.1 Delay Distributions"/>
-<link href="#rfc.section.7" rel="Chapter" title="7 IANA Considerations"/>
-<link href="#rfc.section.8" rel="Chapter" title="8 Security Considerations"/>
-<link href="#rfc.section.9" rel="Chapter" title="9 Privacy Considerations"/>
-<link href="#rfc.section.10" rel="Chapter" title="10 Acknowledgments"/>
-<link href="#rfc.references" rel="Chapter" title="11 Normative References"/>
-<link href="#rfc.appendix.A" rel="Chapter" title="A Timing Oracle Attack Code"/>
-<link href="#rfc.authors" rel="Chapter"/>
+  <link href="#rfc.toc" rel="Contents">
+<link href="#rfc.section.1" rel="Chapter" title="1 Introduction">
+<link href="#rfc.section.2" rel="Chapter" title="2 Terminology">
+<link href="#rfc.section.3" rel="Chapter" title="3 Cache Probe Privacy Attack">
+<link href="#rfc.section.4" rel="Chapter" title="4 &#8220;Private&#8221; Option">
+<link href="#rfc.section.5" rel="Chapter" title="5 Requestor Usage and Behavior">
+<link href="#rfc.section.6" rel="Chapter" title="6 Responder Usage and Behavior">
+<link href="#rfc.section.6.1" rel="Chapter" title="6.1 Segmented Caches">
+<link href="#rfc.section.6.2" rel="Chapter" title="6.2 Artificial Delays">
+<link href="#rfc.section.6.2.1" rel="Chapter" title="6.2.1 Delay Distributions">
+<link href="#rfc.section.7" rel="Chapter" title="7 IANA Considerations">
+<link href="#rfc.section.8" rel="Chapter" title="8 Security Considerations">
+<link href="#rfc.section.9" rel="Chapter" title="9 Privacy Considerations">
+<link href="#rfc.section.10" rel="Chapter" title="10 Acknowledgments">
+<link href="#rfc.references" rel="Chapter" title="11 Normative References">
+<link href="#rfc.appendix.A" rel="Chapter" title="A Timing Oracle Attack Code">
+<link href="#rfc.authors" rel="Chapter">
 
 
-  <meta name="generator" content="xml2rfc version 2.5.2 - http://tools.ietf.org/tools/xml2rfc" />
+  <meta name="generator" content="xml2rfc version 2.8.5 - https://tools.ietf.org/tools/xml2rfc" />
   <link rel="schema.dct" href="http://purl.org/dc/terms/" />
 
   <meta name="dct.creator" content="Wood, C." />
   <meta name="dct.identifier" content="urn:ietf:id:draft-wood-dprive-edns0-privacy-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2018-2-18" />
+  <meta name="dct.issued" scheme="ISO8601" content="2018-2-20" />
   <meta name="dct.abstract" content="TODO" />
   <meta name="description" content="TODO" />
 
@@ -315,20 +317,20 @@ address {
     <tbody>
     
     	<tr>
-  <td class="left">Network Working Group</td>
-  <td class="right">C. Wood</td>
+<td class="left">Network Working Group</td>
+<td class="right">C. Wood</td>
 </tr>
 <tr>
-  <td class="left">Internet-Draft</td>
-  <td class="right">Apple Inc.</td>
+<td class="left">Internet-Draft</td>
+<td class="right">Apple Inc.</td>
 </tr>
 <tr>
-  <td class="left">Intended status: Informational</td>
-  <td class="right">February 18, 2018</td>
+<td class="left">Intended status: Informational</td>
+<td class="right">February 20, 2018</td>
 </tr>
 <tr>
-  <td class="left">Expires: August 22, 2018</td>
-  <td class="right"></td>
+<td class="left">Expires: August 24, 2018</td>
+<td class="right"></td>
 </tr>
 
     	
@@ -338,56 +340,85 @@ address {
   <p class="title">EDNS(0) Privacy Options<br />
   <span class="filename">draft-wood-dprive-edns0-privacy-latest</span></p>
   
-  <h1 id="rfc.abstract">
-  <a href="#rfc.abstract">Abstract</a>
-</h1>
+  <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
 <p>TODO</p>
-<h1 id="rfc.status">
-  <a href="#rfc.status">Status of This Memo</a>
-</h1>
+<h1 id="rfc.status"><a href="#rfc.status">Status of This Memo</a></h1>
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
-<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
+<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on August 22, 2018.</p>
-<h1 id="rfc.copyrightnotice">
-  <a href="#rfc.copyrightnotice">Copyright Notice</a>
-</h1>
+<p>This Internet-Draft will expire on August 24, 2018.</p>
+<h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2018 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
-<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
+<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
 
   
   <hr class="noprint" />
   <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
   <ul class="toc">
 
-  	<li>1.   <a href="#rfc.section.1">Introduction</a></li>
-<li>2.   <a href="#rfc.section.2">Terminology</a></li>
-<li>3.   <a href="#rfc.section.3">Privacy Attacks</a></li>
-<li>4.   <a href="#rfc.section.4">&#8220;Private&#8221; Option</a></li>
-<li>5.   <a href="#rfc.section.5">Requestor Usage and Behavior</a></li>
-<li>6.   <a href="#rfc.section.6">Responder Usage and Behavior</a></li>
-<ul><li>6.1.   <a href="#rfc.section.6.1">Delay Distributions</a></li>
-</ul><li>7.   <a href="#rfc.section.7">IANA Considerations</a></li>
-<li>8.   <a href="#rfc.section.8">Security Considerations</a></li>
-<li>9.   <a href="#rfc.section.9">Privacy Considerations</a></li>
-<li>10.   <a href="#rfc.section.10">Acknowledgments</a></li>
-<li>11.   <a href="#rfc.references">Normative References</a></li>
-<li>Appendix A.   <a href="#rfc.appendix.A">Timing Oracle Attack Code</a></li>
-<li><a href="#rfc.authors">Author's Address</a></li>
+  	<li>1.   <a href="#rfc.section.1">Introduction</a>
+</li>
+<li>2.   <a href="#rfc.section.2">Terminology</a>
+</li>
+<li>3.   <a href="#rfc.section.3">Cache Probe Privacy Attack</a>
+</li>
+<li>4.   <a href="#rfc.section.4">&#8220;Private&#8221; Option</a>
+</li>
+<li>5.   <a href="#rfc.section.5">Requestor Usage and Behavior</a>
+</li>
+<li>6.   <a href="#rfc.section.6">Responder Usage and Behavior</a>
+</li>
+<ul><li>6.1.   <a href="#rfc.section.6.1">Segmented Caches</a>
+</li>
+<li>6.2.   <a href="#rfc.section.6.2">Artificial Delays</a>
+</li>
+<ul><li>6.2.1.   <a href="#rfc.section.6.2.1">Delay Distributions</a>
+</li>
+</ul></ul><li>7.   <a href="#rfc.section.7">IANA Considerations</a>
+</li>
+<li>8.   <a href="#rfc.section.8">Security Considerations</a>
+</li>
+<li>9.   <a href="#rfc.section.9">Privacy Considerations</a>
+</li>
+<li>10.   <a href="#rfc.section.10">Acknowledgments</a>
+</li>
+<li>11.   <a href="#rfc.references">Normative References</a>
+</li>
+<li>Appendix A.   <a href="#rfc.appendix.A">Timing Oracle Attack Code</a>
+</li>
+<li><a href="#rfc.authors">Author's Address</a>
+</li>
 
 
   </ul>
 
-  <h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a></h1>
-<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035">[RFC1035]</a> was designed to transport all messages in cleartext. By default, this provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033">[RFC4033]</a>) for all client queries and responses. <a href="#RFC7858">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit. This prevents passive eavesdroppers from seeing cleartext data, though it does not mitigate traffic analysis of data based on packet sizing, for example, which can be an adequate side channel for learning underlying queries and responses ((CITE:SHULMAN)). <a href="#RFC7830">[RFC7830]</a> and <a href="#I-D.ietf-dprive-padding-policy">[I-D.ietf-dprive-padding-policy]</a> offer mechanisms and advice for clients and servers to pad padding to queries and responses to mask real message size information. Padding profiles in <a href="#I-D.ietf-dprive-padding-policy">[I-D.ietf-dprive-padding-policy]</a> are informed by analyis of DNS message datasets ((TODO:CITE)), though more analysis could and should be done to better understand this mechanism.</p>
+  <h1 id="rfc.section.1">
+<a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a>
+</h1>
+<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035" class="xref">[RFC1035]</a> was designed to transport all messages in cleartext. By default, this provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033" class="xref">[RFC4033]</a>) for all client queries and responses. <a href="#RFC7858" class="xref">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit. This prevents passive eavesdroppers from seeing cleartext data, though it does not mitigate traffic analysis of data based on packet sizing, for example, which can be an adequate side channel for learning underlying queries and responses ((CITE:SHULMAN)). <a href="#RFC7830" class="xref">[RFC7830]</a> and <a href="#I-D.ietf-dprive-padding-policy" class="xref">[I-D.ietf-dprive-padding-policy]</a> offer mechanisms and advice for clients and servers to pad padding to queries and responses to mask real message size information. Padding profiles in <a href="#I-D.ietf-dprive-padding-policy" class="xref">[I-D.ietf-dprive-padding-policy]</a> are informed by analyis of DNS message datasets ((TODO:CITE)), though more analysis could and should be done to better understand this mechanism.</p>
 <p id="rfc.section.1.p.2">One privacy-sensitive side channel introduced by DNS recursive resolvers and not covered by existing mechanisms is caused by caching. Specifically, recursive resolvers that cache responses and use them in response to queries make the observed latency to clients less than that for non-cached or stale records. Malicious clients may exploit this side channel as an oracle to learn what records were previously requested by nearby clients.  Source code for an attack exploiting this side channel is given in Appendix A.</p>
-<p id="rfc.section.1.p.3">In this document, we propose a new EDNS(0) option that allows clients to mark queries as privacy sensitive. We specify recursive behavior when processing private queries and caching their responses. Usage of this option SHOULD only be enabled when running over a secure transport such as TLS <a href="#RFC7858">[RFC7858]</a>, as otherwise recursive resolvers or other responders are subject to denial-of-service attacks.</p>
-<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#terminology" id="terminology">Terminology</a></h1>
-<p id="rfc.section.2.p.1">The terms &#8220;Requestor&#8221; and &#8220;Responder&#8221; are to be interpreted as specified in <a href="#RFC6891">[RFC6891]</a>.</p>
-<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#attacks" id="attacks">Privacy Attacks</a></h1>
-<p id="rfc.section.3.p.1">TODO: attack description(s)</p>
-<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#private-option" id="private-option">&#8220;Private&#8221; Option</a></h1>
-<p id="rfc.section.4.p.1">EDNS(0) <a href="#RFC6891">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;Private&#8221; option that allows clients to indicate</p>
+<p id="rfc.section.1.p.3">In this document, we propose a new EDNS(0) option that allows clients to mark queries as privacy sensitive. We specify recursive behavior when processing private queries and caching their responses. Usage of this option SHOULD only be enabled when running over a secure transport such as TLS <a href="#RFC7858" class="xref">[RFC7858]</a>, as otherwise recursive resolvers or other responders are subject to denial-of-service attacks.</p>
+<h1 id="rfc.section.2">
+<a href="#rfc.section.2">2.</a> <a href="#terminology" id="terminology">Terminology</a>
+</h1>
+<p id="rfc.section.2.p.1">The terms &#8220;Requestor&#8221; and &#8220;Responder&#8221; are to be interpreted as specified in <a href="#RFC6891" class="xref">[RFC6891]</a>.</p>
+<h1 id="rfc.section.3">
+<a href="#rfc.section.3">3.</a> <a href="#attacks" id="attacks">Cache Probe Privacy Attack</a>
+</h1>
+<p id="rfc.section.3.p.1">Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents eavesdroppers observing queries and responses in transit. However, as this only protects the data channel, other privacy attacks remain possible. In this document, we focus soley on the cache probe attack outlined in Section <a href="#introduction" class="xref">Section 1</a>. We describe the attack in more detail here.</p>
+<p id="rfc.section.3.p.2">Let S be a benign client (requestor) using recursive resolver (responder) R.  In answering S&#8217;s queries, R speaks to several authoritative servers A1,&#8230;,An.  Let RTT(requestor, responder) be a function that computes the average RTT for a given query and response between requestor and responder. For example, RTT(R,A1) is the average RTT for answering a query sent by R and answered by A1. Let Delay(q, r) be a function that measures the delay in answering request q with response r.  Finally, let Adv be a malicious client who wishes to learn what queries were asked by S.  Adv proceeds as follows. Assume Adv wants to learn if S queried for q = example.com.  To do so, Adv requests q from R, yielding response r, and measures d = delay(q, r). Then, Adv sends a random query q&#8217; in the same top-level domain (e.g., .com), yielding response r&#8217;, that S is unlikely to have requested, and measures d&#8217; = delay(q&#8217;, r&#8217;).  If |d - d&#8217;| ~ 0, then Adv concludes q was not requested by S (or someone else). Otherwise, Adv concludes that, with some probability q was requested.</p>
+<p id="rfc.section.3.p.3">Severity of this attack depends on several factors:</p>
+<p></p>
+
+<ul>
+<li>How many clients (stubs) are served by R.</li>
+<li>What types of queries are requested by other clients of R. For example, do they require more recursive resolution steps to resolve? If so, this may inflate time required to answer the query.</li>
+</ul>
+<p id="rfc.section.3.p.5">While learning the existence of a certain query may not always constitute a privacy violation, it may for some clients.</p>
+<h1 id="rfc.section.4">
+<a href="#rfc.section.4">4.</a> <a href="#private-option" id="private-option">&#8220;Private&#8221; Option</a>
+</h1>
+<p id="rfc.section.4.p.1">EDNS(0) <a href="#RFC6891" class="xref">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;Private&#8221; option that allows clients to indicate</p>
 <pre>
 0                       8                      16
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -400,101 +431,130 @@ address {
 </pre>
 <p id="rfc.section.4.p.2">The OPTION-CODE for the &#8220;Private&#8221; option is TBD.</p>
 <p id="rfc.section.4.p.3">The OPTION-LENGTH for the &#8220;Private&#8221; option is one octet.</p>
-<p id="rfc.section.4.p.4">The PRIVATE octet MUST be set to 0x01. Presence of this option indicates that a query is private. Other values MUST NOT be used. Responders, such as recursive resolvers, MUST drop the query if another value is set, as discussed in Section <a href="#usage-recursive">Section 6</a>.</p>
-<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#usage-stub" id="usage-stub">Requestor Usage and Behavior</a></h1>
-<p id="rfc.section.5.p.1">Requestors MAY include a &#8220;Private&#8221; option for any query deemed private or sensitive. This may include queries for explicitly known-to-be private domains or for all domains when operating in a &#8220;private&#8221; mode. Specific recommendations for when to include this option are outside the scope of this document.</p>
-<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#usage-recursive" id="usage-recursive">Responder Usage and Behavior</a></h1>
-<p id="rfc.section.6.p.1">Responders that receive a query Q with &#8220;Private&#8221; options MUST do one of the following to satisfy Q:</p>
-<p/>
-
-<ol>
-  <li>If response R is not cached, resolve Q using upstream authoritative or recursive resolvers.</li>
-  <li>If response R is cached, ignore R and attempt to resolve Q using upstream authoritative or recursive resolvers.</li>
-  <li>If response R is cached, delay sending R to the requestor until some time T has passed. T is a random variable with distribution equal to the resolution distribution time of R.</li>
-</ol>
-<p id="rfc.section.6.p.3">TODO: summarize rules for privacy bits in queries and different attacks</p>
-<h1 id="rfc.section.6.1"><a href="#rfc.section.6.1">6.1.</a> <a href="#delay-distributions" id="delay-distributions">Delay Distributions</a></h1>
-<p id="rfc.section.6.1.p.1">T measurement and distribution estimation is critical for masking the timing side channel described in Section <a href="#introduction">Section 1</a>. Both should be chosen to maximize requestor utility while minimizing responder overhead.  We draw on observations and experiments by <a href="#Acs17">[Acs17]</a> in deciding these factors.</p>
-<p id="rfc.section.6.1.p.2">Responders SHOULD measure query resolution time T&#8217; and use this in selecting T&#8217;s distribution. There are two recommended delay strategies for responders assuming knowledge of T&#8217;, including:</p>
-<p/>
-
-<ol>
-  <li>Uniform: Delay for some time T* that is selected uniformly at random in the range [0, T&#8217;], i.e,. with probability distribution function Pr[T = t] = 1/T&#8217;.</li>
-  <li>Geometric: Delay for some time T* that is selected according to a geometric distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k, where k is a parameter for the distribution.</li>
-</ol>
-<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
-<p id="rfc.section.7.p.1">((TODO: codepoint for option type))</p>
-<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
-<p id="rfc.section.8.p.1">TODO</p>
-<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a></h1>
-<p id="rfc.section.9.p.1">TODO</p>
-<h1 id="rfc.section.10"><a href="#rfc.section.10">10.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a></h1>
-<p id="rfc.section.10.p.1">TODO</p>
-<h1 id="rfc.references"><a href="#rfc.references">11.</a> Normative References</h1>
-<table>
-  <tbody>
-    <tr><td class="reference"><b id="Acs17">[Acs17]</b></td><td class="top"><a href="http://ieeexplore.ieee.org/document/7874168/">Privacy-Aware Caching in Information-Centric Networking</a>", n.d..</td>, "</tr>
-    <tr>
-      <td class="reference">
-        <b id="I-D.ietf-dprive-padding-policy">[I-D.ietf-dprive-padding-policy]</b>
-      </td>
-      <td class="top"><a>Mayrhofer, A.</a>, "<a href="http://tools.ietf.org/html/draft-ietf-dprive-padding-policy-04">Padding Policy for EDNS(0)</a>", Internet-Draft draft-ietf-dprive-padding-policy-04, February 2018.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</b>
-      </td>
-      <td class="top"><a>Rescorla, E.</a>, <a href="http://tools.ietf.org/html/draft-ietf-tls-tls13-24">The Transport Layer Security (TLS) Protocol Version 1.3</a>", Internet-Draft draft-ietf-tls-tls13-24, February 2018.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC1035">[RFC1035]</b>
-      </td>
-      <td class="top"><a>Mockapetris, P.</a>, "<a href="http://tools.ietf.org/html/rfc1035">Domain names - implementation and specification</a>", STD 13, RFC 1035, DOI 10.17487/RFC1035, November 1987.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC2104">[RFC2104]</b>
-      </td>
-      <td class="top"><a>Krawczyk, H.</a>, <a>Bellare, M.</a> and <a>R. Canetti</a>, "<a href="http://tools.ietf.org/html/rfc2104">HMAC: Keyed-Hashing for Message Authentication</a>", RFC 2104, DOI 10.17487/RFC2104, February 1997.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC4033">[RFC4033]</b>
-      </td>
-      <td class="top"><a>Arends, R.</a>, <a>Austein, R.</a>, <a>Larson, M.</a>, <a>Massey, D.</a> and <a>S. Rose</a>, "<a href="http://tools.ietf.org/html/rfc4033">DNS Security Introduction and Requirements</a>", RFC 4033, DOI 10.17487/RFC4033, March 2005.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC5077">[RFC5077]</b>
-      </td>
-      <td class="top"><a>Salowey, J.</a>, <a>Zhou, H.</a>, <a>Eronen, P.</a> and <a>H. Tschofenig</a>, "<a href="http://tools.ietf.org/html/rfc5077">Transport Layer Security (TLS) Session Resumption without Server-Side State</a>", RFC 5077, DOI 10.17487/RFC5077, January 2008.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC6891">[RFC6891]</b>
-      </td>
-      <td class="top"><a>Damas, J.</a>, <a>Graff, M.</a> and <a>P. Vixie</a>, "<a href="http://tools.ietf.org/html/rfc6891">Extension Mechanisms for DNS (EDNS(0))</a>", STD 75, RFC 6891, DOI 10.17487/RFC6891, April 2013.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC7830">[RFC7830]</b>
-      </td>
-      <td class="top"><a>Mayrhofer, A.</a>, "<a href="http://tools.ietf.org/html/rfc7830">The EDNS(0) Padding Option</a>", RFC 7830, DOI 10.17487/RFC7830, May 2016.</td>
-    </tr>
-    <tr>
-      <td class="reference">
-        <b id="RFC7858">[RFC7858]</b>
-      </td>
-      <td class="top"><a>Hu, Z.</a>, <a>Zhu, L.</a>, <a>Heidemann, J.</a>, <a>Mankin, A.</a>, <a>Wessels, D.</a> and <a>P. Hoffman</a>, "<a href="http://tools.ietf.org/html/rfc7858">Specification for DNS over Transport Layer Security (TLS)</a>", RFC 7858, DOI 10.17487/RFC7858, May 2016.</td>
-    </tr>
-  </tbody>
-</table>
-<h1 id="rfc.appendix.A"><a href="#rfc.appendix.A">Appendix A.</a> <a href="#timing-oracle-attack-code" id="timing-oracle-attack-code">Timing Oracle Attack Code</a></h1>
-<p id="rfc.section.A.p.1">TODO: include bash script that connects to recursive and performs correlation attack</p>
-<h1 id="rfc.authors">
-  <a href="#rfc.authors">Author's Address</a>
+<p id="rfc.section.4.p.4">The PRIVATE octet MUST be set to 0x01. Presence of this option indicates that a query is private. Other values MUST NOT be used. Responders, such as recursive resolvers, MUST drop the query if another value is set, as discussed in Section <a href="#usage-recursive" class="xref">Section 6</a>.</p>
+<h1 id="rfc.section.5">
+<a href="#rfc.section.5">5.</a> <a href="#usage-stub" id="usage-stub">Requestor Usage and Behavior</a>
 </h1>
+<p id="rfc.section.5.p.1">Requestors MAY include a &#8220;Private&#8221; option for any query deemed private or sensitive. This may include queries for explicitly known-to-be private domains or for all domains when operating in a &#8220;private&#8221; mode. Specific recommendations for when to include this option are outside the scope of this document.</p>
+<h1 id="rfc.section.6">
+<a href="#rfc.section.6">6.</a> <a href="#usage-recursive" id="usage-recursive">Responder Usage and Behavior</a>
+</h1>
+<p id="rfc.section.6.p.1">There are (at least) two ways responders can handle responder usage. They share a common principle: private queries avoid using the same cache as non-private queries.  This has the effect of removing side channels from private queries. The two strategies described here work as follows:</p>
+<p></p>
+
+<ol>
+<li>Require responders to use per-client, segmented caches for private queries that are flushed when secure connections are torn down.</li>
+<li>Require responders to &#8220;ignore&#8221; cached responses and emulate fetch delays for queries (and responses) marked private.</li>
+</ol>
+<p id="rfc.section.6.p.3">We describe each approach in more detail below.</p>
+<h1 id="rfc.section.6.1">
+<a href="#rfc.section.6.1">6.1.</a> <a href="#segmented-caches" id="segmented-caches">Segmented Caches</a>
+</h1>
+<p id="rfc.section.6.1.p.1">Responders that receive a query Q without the &#8220;Private&#8221; options may treat it as normal, i.e., by serving a response from cache if available. For a query Q with a &#8220;Private&#8221; option sent from client S, responders MUST do the following:</p>
+<p></p>
+
+<ul>
+<li>Index S&#8217;s private cache using Q, if it exists. If response R is present, serve it to S.</li>
+<li>If S&#8217;s private cache does not exist, attempt to resolve Q as normal. Cache the response in S&#8217;s private cache.</li>
+</ul>
+<p id="rfc.section.6.1.p.3">When S&#8217;s connection to R is torn down, S&#8217;s private cache MUST be flushed and memory released.  Responders SHOULD apply whatever per-client caching policy is sensible to balance utility amongst shared (non-private) and private caches. Segmented caches introduce more memory requirements for resolvers at the cost of improving client privacy.</p>
+<p id="rfc.section.6.1.p.4">This approach is only viable when clients connect to resolvers over a session-based secure transport such as TLS or DTLS. Otherwise, malicious clients may flood resolvers with private queries and induce cache fragmentation.</p>
+<h1 id="rfc.section.6.2">
+<a href="#rfc.section.6.2">6.2.</a> <a href="#artificial-delays" id="artificial-delays">Artificial Delays</a>
+</h1>
+<p id="rfc.section.6.2.p.1">Responders that receive a query Q with &#8220;Private&#8221; options MUST do one of the following to satisfy Q:</p>
+<p></p>
+
+<ol>
+<li>If response R is not cached, resolve Q using upstream authoritative or recursive resolvers.</li>
+<li>If response R is cached, ignore R and attempt to resolve Q using upstream authoritative or recursive resolvers.</li>
+<li>If response R is cached, delay sending R to the requestor until some time T has passed. T is a random variable with distribution equal to the resolution distribution time of R.</li>
+</ol>
+<h1 id="rfc.section.6.2.1">
+<a href="#rfc.section.6.2.1">6.2.1.</a> <a href="#delay-distributions" id="delay-distributions">Delay Distributions</a>
+</h1>
+<p id="rfc.section.6.2.1.p.1">T measurement and distribution estimation is critical for masking the timing side channel described in Section <a href="#introduction" class="xref">Section 1</a>. Both should be chosen to maximize requestor utility while minimizing responder overhead.  We draw on observations and experiments by <a href="#Acs17" class="xref">[Acs17]</a> in deciding these factors.</p>
+<p id="rfc.section.6.2.1.p.2">Responders SHOULD measure query resolution time T&#8217; and use this in selecting T&#8217;s distribution. There are two recommended delay strategies for responders assuming knowledge of T&#8217;, including:</p>
+<p></p>
+
+<ol>
+<li>Uniform: Delay for some time T* that is selected uniformly at random in the range [0, T&#8217;], i.e,. with probability distribution function Pr[T = t] = 1/T&#8217;.</li>
+<li>Geometric: Delay for some time T* that is selected according to a geometric distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k, where k is a parameter for the distribution.</li>
+</ol>
+<h1 id="rfc.section.7">
+<a href="#rfc.section.7">7.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a>
+</h1>
+<p id="rfc.section.7.p.1">((TODO: codepoint for option type?))</p>
+<h1 id="rfc.section.8">
+<a href="#rfc.section.8">8.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
+</h1>
+<p id="rfc.section.8.p.1">TODO: discuss client selfishness (and starvation?)</p>
+<h1 id="rfc.section.9">
+<a href="#rfc.section.9">9.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a>
+</h1>
+<p id="rfc.section.9.p.1">TODO</p>
+<h1 id="rfc.section.10">
+<a href="#rfc.section.10">10.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a>
+</h1>
+<p id="rfc.section.10.p.1">TODO</p>
+<h1 id="rfc.references">
+<a href="#rfc.references">11.</a> Normative References</h1>
+<table><tbody>
+<tr>
+<td class="reference"><b id="Acs17">[Acs17]</b></td>
+<td class="top">"<a href="http://ieeexplore.ieee.org/document/7874168/">Privacy-Aware Caching in Information-Centric Networking</a>", n.d..</td>
+</tr>
+<tr>
+<td class="reference"><b id="I-D.ietf-dprive-padding-policy">[I-D.ietf-dprive-padding-policy]</b></td>
+<td class="top">
+<a>Mayrhofer, A.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-dprive-padding-policy-04">Padding Policy for EDNS(0)</a>", Internet-Draft draft-ietf-dprive-padding-policy-04, February 2018.</td>
+</tr>
+<tr>
+<td class="reference"><b id="I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</b></td>
+<td class="top">
+<a>Rescorla, E.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-tls-tls13-24">The Transport Layer Security (TLS) Protocol Version 1.3</a>", Internet-Draft draft-ietf-tls-tls13-24, February 2018.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC1035">[RFC1035]</b></td>
+<td class="top">
+<a>Mockapetris, P.</a>, "<a href="https://tools.ietf.org/html/rfc1035">Domain names - implementation and specification</a>", STD 13, RFC 1035, DOI 10.17487/RFC1035, November 1987.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC2104">[RFC2104]</b></td>
+<td class="top">
+<a>Krawczyk, H.</a>, <a>Bellare, M.</a> and <a>R. Canetti</a>, "<a href="https://tools.ietf.org/html/rfc2104">HMAC: Keyed-Hashing for Message Authentication</a>", RFC 2104, DOI 10.17487/RFC2104, February 1997.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC4033">[RFC4033]</b></td>
+<td class="top">
+<a>Arends, R.</a>, <a>Austein, R.</a>, <a>Larson, M.</a>, <a>Massey, D.</a> and <a>S. Rose</a>, "<a href="https://tools.ietf.org/html/rfc4033">DNS Security Introduction and Requirements</a>", RFC 4033, DOI 10.17487/RFC4033, March 2005.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC5077">[RFC5077]</b></td>
+<td class="top">
+<a>Salowey, J.</a>, <a>Zhou, H.</a>, <a>Eronen, P.</a> and <a>H. Tschofenig</a>, "<a href="https://tools.ietf.org/html/rfc5077">Transport Layer Security (TLS) Session Resumption without Server-Side State</a>", RFC 5077, DOI 10.17487/RFC5077, January 2008.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC6891">[RFC6891]</b></td>
+<td class="top">
+<a>Damas, J.</a>, <a>Graff, M.</a> and <a>P. Vixie</a>, "<a href="https://tools.ietf.org/html/rfc6891">Extension Mechanisms for DNS (EDNS(0))</a>", STD 75, RFC 6891, DOI 10.17487/RFC6891, April 2013.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC7830">[RFC7830]</b></td>
+<td class="top">
+<a>Mayrhofer, A.</a>, "<a href="https://tools.ietf.org/html/rfc7830">The EDNS(0) Padding Option</a>", RFC 7830, DOI 10.17487/RFC7830, May 2016.</td>
+</tr>
+<tr>
+<td class="reference"><b id="RFC7858">[RFC7858]</b></td>
+<td class="top">
+<a>Hu, Z.</a>, <a>Zhu, L.</a>, <a>Heidemann, J.</a>, <a>Mankin, A.</a>, <a>Wessels, D.</a> and <a>P. Hoffman</a>, "<a href="https://tools.ietf.org/html/rfc7858">Specification for DNS over Transport Layer Security (TLS)</a>", RFC 7858, DOI 10.17487/RFC7858, May 2016.</td>
+</tr>
+</tbody></table>
+<h1 id="rfc.appendix.A">
+<a href="#rfc.appendix.A">Appendix A.</a> <a href="#timing-oracle-attack-code" id="timing-oracle-attack-code">Timing Oracle Attack Code</a>
+</h1>
+<p id="rfc.section.A.p.1">TODO: include bash script that connects to recursive and performs correlation attack</p>
+<h1 id="rfc.authors"><a href="#rfc.authors">Author's Address</a></h1>
 <div class="avoidbreak">
   <address class="vcard">
 	<span class="vcardline">

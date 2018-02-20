@@ -4,8 +4,8 @@
 
 Network Working Group                                            C. Wood
 Internet-Draft                                                Apple Inc.
-Intended status: Informational                         February 18, 2018
-Expires: August 22, 2018
+Intended status: Informational                         February 20, 2018
+Expires: August 24, 2018
 
 
                         EDNS(0) Privacy Options
@@ -23,14 +23,14 @@ Status of This Memo
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF).  Note that other groups may also distribute
    working documents as Internet-Drafts.  The list of current Internet-
-   Drafts is at http://datatracker.ietf.org/drafts/current/.
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 22, 2018.
+   This Internet-Draft will expire on August 24, 2018.
 
 Copyright Notice
 
@@ -39,7 +39,7 @@ Copyright Notice
 
    This document is subject to BCP 78 and the IETF Trust's Legal
    Provisions Relating to IETF Documents
-   (http://trustee.ietf.org/license-info) in effect on the date of
+   (https://trustee.ietf.org/license-info) in effect on the date of
    publication of this document.  Please review these documents
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Wood                     Expires August 22, 2018                [Page 1]
+Wood                     Expires August 24, 2018                [Page 1]
 
 Internet-Draft           EDNS(0) Privacy Options           February 2018
 
@@ -62,18 +62,20 @@ Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   3.  Privacy Attacks . . . . . . . . . . . . . . . . . . . . . . .   3
-   4.  "Private" Option  . . . . . . . . . . . . . . . . . . . . . .   3
-   5.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   3
+   3.  Cache Probe Privacy Attack  . . . . . . . . . . . . . . . . .   3
+   4.  "Private" Option  . . . . . . . . . . . . . . . . . . . . . .   4
+   5.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   4
    6.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   4
-     6.1.  Delay Distributions . . . . . . . . . . . . . . . . . . .   4
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   4
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   4
-   9.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .   5
-   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   5
-   11. Normative References  . . . . . . . . . . . . . . . . . . . .   5
-   Appendix A.  Timing Oracle Attack Code  . . . . . . . . . . . . .   6
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   6
+     6.1.  Segmented Caches  . . . . . . . . . . . . . . . . . . . .   5
+     6.2.  Artificial Delays . . . . . . . . . . . . . . . . . . . .   5
+       6.2.1.  Delay Distributions . . . . . . . . . . . . . . . . .   5
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   9.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .   6
+   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   6
+   11. Normative References  . . . . . . . . . . . . . . . . . . . .   6
+   Appendix A.  Timing Oracle Attack Code  . . . . . . . . . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
 
 1.  Introduction
 
@@ -104,16 +106,16 @@ Table of Contents
 
    In this document, we propose a new EDNS(0) option that allows clients
    to mark queries as privacy sensitive.  We specify recursive behavior
-   when processing private queries and caching their responses.  Usage
-   of this option SHOULD only be enabled when running over a secure
 
 
 
-Wood                     Expires August 22, 2018                [Page 2]
+Wood                     Expires August 24, 2018                [Page 2]
 
 Internet-Draft           EDNS(0) Privacy Options           February 2018
 
 
+   when processing private queries and caching their responses.  Usage
+   of this option SHOULD only be enabled when running over a secure
    transport such as TLS [RFC7858], as otherwise recursive resolvers or
    other responders are subject to denial-of-service attacks.
 
@@ -122,9 +124,51 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    The terms "Requestor" and "Responder" are to be interpreted as
    specified in [RFC6891].
 
-3.  Privacy Attacks
+3.  Cache Probe Privacy Attack
 
-   TODO: attack description(s)
+   Securing DNS traffic in transit via DNS-over-TLS has many benefits.
+   Minimally, it prevents eavesdroppers observing queries and responses
+   in transit.  However, as this only protects the data channel, other
+   privacy attacks remain possible.  In this document, we focus soley on
+   the cache probe attack outlined in Section Section 1.  We describe
+   the attack in more detail here.
+
+   Let S be a benign client (requestor) using recursive resolver
+   (responder) R.  In answering S's queries, R speaks to several
+   authoritative servers A1,...,An.  Let RTT(requestor, responder) be a
+   function that computes the average RTT for a given query and response
+   between requestor and responder.  For example, RTT(R,A1) is the
+   average RTT for answering a query sent by R and answered by A1.  Let
+   Delay(q, r) be a function that measures the delay in answering
+   request q with response r.  Finally, let Adv be a malicious client
+   who wishes to learn what queries were asked by S.  Adv proceeds as
+   follows.  Assume Adv wants to learn if S queried for q = example.com.
+   To do so, Adv requests q from R, yielding response r, and measures d
+   = delay(q, r).  Then, Adv sends a random query q' in the same top-
+   level domain (e.g., .com), yielding response r', that S is unlikely
+   to have requested, and measures d' = delay(q', r').  If |d - d'| ~ 0,
+   then Adv concludes q was not requested by S (or someone else).
+   Otherwise, Adv concludes that, with some probability q was requested.
+
+   Severity of this attack depends on several factors:
+
+   o  How many clients (stubs) are served by R.
+
+   o  What types of queries are requested by other clients of R.  For
+      example, do they require more recursive resolution steps to
+      resolve?  If so, this may inflate time required to answer the
+      query.
+
+   While learning the existence of a certain query may not always
+   constitute a privacy violation, it may for some clients.
+
+
+
+
+Wood                     Expires August 24, 2018                [Page 3]
+
+Internet-Draft           EDNS(0) Privacy Options           February 2018
+
 
 4.  "Private" Option
 
@@ -158,19 +202,56 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    "private" mode.  Specific recommendations for when to include this
    option are outside the scope of this document.
 
+6.  Responder Usage and Behavior
+
+   There are (at least) two ways responders can handle responder usage.
+   They share a common principle: private queries avoid using the same
+   cache as non-private queries.  This has the effect of removing side
+   channels from private queries.  The two strategies described here
+   work as follows:
+
+   1.  Require responders to use per-client, segmented caches for
+       private queries that are flushed when secure connections are torn
+       down.
+
+   2.  Require responders to "ignore" cached responses and emulate fetch
+       delays for queries (and responses) marked private.
+
+   We describe each approach in more detail below.
 
 
 
-
-
-
-
-Wood                     Expires August 22, 2018                [Page 3]
+Wood                     Expires August 24, 2018                [Page 4]
 
 Internet-Draft           EDNS(0) Privacy Options           February 2018
 
 
-6.  Responder Usage and Behavior
+6.1.  Segmented Caches
+
+   Responders that receive a query Q without the "Private" options may
+   treat it as normal, i.e., by serving a response from cache if
+   available.  For a query Q with a "Private" option sent from client S,
+   responders MUST do the following:
+
+   o  Index S's private cache using Q, if it exists.  If response R is
+      present, serve it to S.
+
+   o  If S's private cache does not exist, attempt to resolve Q as
+      normal.  Cache the response in S's private cache.
+
+   When S's connection to R is torn down, S's private cache MUST be
+   flushed and memory released.  Responders SHOULD apply whatever per-
+   client caching policy is sensible to balance utility amongst shared
+   (non-private) and private caches.  Segmented caches introduce more
+   memory requirements for resolvers at the cost of improving client
+   privacy.
+
+   This approach is only viable when clients connect to resolvers over a
+   session-based secure transport such as TLS or DTLS.  Otherwise,
+   malicious clients may flood resolvers with private queries and induce
+   cache fragmentation.
+
+6.2.  Artificial Delays
 
    Responders that receive a query Q with "Private" options MUST do one
    of the following to satisfy Q:
@@ -185,16 +266,21 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
        some time T has passed.  T is a random variable with distribution
        equal to the resolution distribution time of R.
 
-   TODO: summarize rules for privacy bits in queries and different
-   attacks
-
-6.1.  Delay Distributions
+6.2.1.  Delay Distributions
 
    T measurement and distribution estimation is critical for masking the
    timing side channel described in Section Section 1.  Both should be
    chosen to maximize requestor utility while minimizing responder
    overhead.  We draw on observations and experiments by [Acs17] in
    deciding these factors.
+
+
+
+
+Wood                     Expires August 24, 2018                [Page 5]
+
+Internet-Draft           EDNS(0) Privacy Options           February 2018
+
 
    Responders SHOULD measure query resolution time T' and use this in
    selecting T's distribution.  There are two recommended delay
@@ -211,20 +297,11 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
 
 7.  IANA Considerations
 
-   ((TODO: codepoint for option type))
+   ((TODO: codepoint for option type?))
 
 8.  Security Considerations
 
-   TODO
-
-
-
-
-
-Wood                     Expires August 22, 2018                [Page 4]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
+   TODO: discuss client selfishness (and starvation?)
 
 9.  Privacy Considerations
 
@@ -253,10 +330,18 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
               November 1987, <https://www.rfc-editor.org/info/rfc1035>.
 
+
+
+
+Wood                     Expires August 24, 2018                [Page 6]
+
+Internet-Draft           EDNS(0) Privacy Options           February 2018
+
+
    [RFC2104]  Krawczyk, H., Bellare, M., and R. Canetti, "HMAC: Keyed-
               Hashing for Message Authentication", RFC 2104,
-              DOI 10.17487/RFC2104, February 1997, <https://www.rfc-
-              editor.org/info/rfc2104>.
+              DOI 10.17487/RFC2104, February 1997,
+              <https://www.rfc-editor.org/info/rfc2104>.
 
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "DNS Security Introduction and Requirements",
@@ -270,21 +355,12 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
 
    [RFC6891]  Damas, J., Graff, M., and P. Vixie, "Extension Mechanisms
               for DNS (EDNS(0))", STD 75, RFC 6891,
-              DOI 10.17487/RFC6891, April 2013, <https://www.rfc-
-              editor.org/info/rfc6891>.
-
-
-
-
-
-Wood                     Expires August 22, 2018                [Page 5]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
+              DOI 10.17487/RFC6891, April 2013,
+              <https://www.rfc-editor.org/info/rfc6891>.
 
    [RFC7830]  Mayrhofer, A., "The EDNS(0) Padding Option", RFC 7830,
-              DOI 10.17487/RFC7830, May 2016, <https://www.rfc-
-              editor.org/info/rfc7830>.
+              DOI 10.17487/RFC7830, May 2016,
+              <https://www.rfc-editor.org/info/rfc7830>.
 
    [RFC7858]  Hu, Z., Zhu, L., Heidemann, J., Mankin, A., Wessels, D.,
               and P. Hoffman, "Specification for DNS over Transport
@@ -313,24 +389,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Wood                     Expires August 22, 2018                [Page 6]
+Wood                     Expires August 24, 2018                [Page 7]
