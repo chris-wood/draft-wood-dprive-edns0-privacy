@@ -51,7 +51,7 @@ against a network adversary.
 data in transit.
 
 Even if data is protected in transit, the current caching behavior of
-recursive DNS resolves introduces a side channel for an active network
+recursive DNS resolvers introduces a side channel for an active network
 adversary to learn queries made by other clients.
 Specifically, in response to a client's query, a recursive resolver will
 fetch the corresponding record by traversing the DNS hierarchy and cache
