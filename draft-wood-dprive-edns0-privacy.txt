@@ -63,10 +63,10 @@ Table of Contents
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
    3.  Cache Probe Privacy Attack  . . . . . . . . . . . . . . . . .   3
-   4.  "Private" Option  . . . . . . . . . . . . . . . . . . . . . .   4
+   4.  "Private" Option  . . . . . . . . . . . . . . . . . . . . . .   3
    5.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   4
    6.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   4
-     6.1.  Segmented Caches  . . . . . . . . . . . . . . . . . . . .   5
+     6.1.  Segmented Caches  . . . . . . . . . . . . . . . . . . . .   4
      6.2.  Artificial Delays . . . . . . . . . . . . . . . . . . . .   5
        6.2.1.  Delay Distributions . . . . . . . . . . . . . . . . .   5
    7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
@@ -80,44 +80,38 @@ Table of Contents
 1.  Introduction
 
    The Domain Name System (DNS) [RFC1035] was designed to transport all
-   messages in cleartext.  By default, this provides no privacy,
-   confidentiality, or integrity (in the absence of DNSSEC [RFC4033])
-   for all client queries and responses.  [RFC7858] standardizes running
-   DNS over (D)TLS to protect data in transit.  This prevents passive
-   eavesdroppers from seeing cleartext data, though it does not mitigate
-   traffic analysis of data based on packet sizing, for example, which
-   can be an adequate side channel for learning underlying queries and
-   responses ((CITE:SHULMAN)).  [RFC7830] and
-   [I-D.ietf-dprive-padding-policy] offer mechanisms and advice for
-   clients and servers to pad padding to queries and responses to mask
-   real message size information.  Padding profiles in
-   [I-D.ietf-dprive-padding-policy] are informed by analyis of DNS
-   message datasets ((TODO:CITE)), though more analysis could and should
-   be done to better understand this mechanism.
+   messages in cleartext.  This provides no privacy, confidentiality, or
+   integrity (in the absence of DNSSEC [RFC4033]) for all client queries
+   and responses against a network adversary.  [RFC7858] standardizes
+   running DNS over (D)TLS to protect data in transit.
 
-   One privacy-sensitive side channel introduced by DNS recursive
-   resolvers and not covered by existing mechanisms is caused by
-   caching.  Specifically, recursive resolvers that cache responses and
-   use them in response to queries make the observed latency to clients
-   less than that for non-cached or stale records.  Malicious clients
-   may exploit this side channel as an oracle to learn what records were
-   previously requested by nearby clients.  Source code for an attack
-   exploiting this side channel is given in Appendix A.
+   Even if data is protected in transit, the current caching behavior of
+   recursive DNS resolvers introduces a side channel for an active
+   network adversary to learn queries made by other clients.
+   Specifically, in response to a client's query, a recursive resolver
+   will fetch the corresponding record by traversing the DNS hierarchy
+   and cache it to more effieciently respond to the same query in the
+   future.  Returning a cached record is expected to be faster than
+   making network requests to fetch it and that timing difference is
+   observable by the client making the query.  Because the cache is
+   shared by all clients, if a client observes a fast response time for
+   a given query it can infer that some other client has already made
+   that query in the past.  Malicious clients may exploit this caching
+   behavior to use the cache as an oracle for the network activity of
+   other clients.  Proof of concept code is provided in Appendix A.
 
    In this document, we propose a new EDNS(0) option that allows clients
    to mark queries as privacy sensitive.  We specify recursive behavior
-
+   when processing private queries and caching their responses.  Usage
+   of this option SHOULD only be enabled when running over a secure
+   transport such as TLS [RFC7858], as otherwise recursive resolvers or
+   other responders are subject to denial-of-service attacks.
 
 
 Wood                     Expires August 24, 2018                [Page 2]
 
 Internet-Draft           EDNS(0) Privacy Options           February 2018
 
-
-   when processing private queries and caching their responses.  Usage
-   of this option SHOULD only be enabled when running over a secure
-   transport such as TLS [RFC7858], as otherwise recursive resolvers or
-   other responders are subject to denial-of-service attacks.
 
 2.  Terminology
 
@@ -164,7 +158,6 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
 
 
 
-
 Wood                     Expires August 24, 2018                [Page 3]
 
 Internet-Draft           EDNS(0) Privacy Options           February 2018
@@ -175,6 +168,13 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    EDNS(0) [RFC6891] specifies a mechanism to include new options in DNS
    messages.  This document specifies a new "Private" option that allows
    clients to indicate
+
+
+
+Wood                     Expires August 24, 2018                [Page 3]
+
+Internet-Draft           EDNS(0) Privacy Options           February 2018
+
 
    0                       8                      16
    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -219,6 +219,12 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
 
    We describe each approach in more detail below.
 
+6.1.  Segmented Caches
+
+   Responders that receive a query Q without the "Private" options may
+   treat it as normal, i.e., by serving a response from cache if
+
+
 
 
 Wood                     Expires August 24, 2018                [Page 4]
@@ -226,10 +232,6 @@ Wood                     Expires August 24, 2018                [Page 4]
 Internet-Draft           EDNS(0) Privacy Options           February 2018
 
 
-6.1.  Segmented Caches
-
-   Responders that receive a query Q without the "Private" options may
-   treat it as normal, i.e., by serving a response from cache if
    available.  For a query Q with a "Private" option sent from client S,
    responders MUST do the following:
 
@@ -285,6 +287,14 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    Responders SHOULD measure query resolution time T' and use this in
    selecting T's distribution.  There are two recommended delay
    strategies for responders assuming knowledge of T', including:
+
+
+
+
+Wood                     Expires August 24, 2018                [Page 5]
+
+Internet-Draft           EDNS(0) Privacy Options           February 2018
+
 
    1.  Uniform: Delay for some time T* that is selected uniformly at
        random in the range [0, T'], i.e,. with probability distribution
@@ -343,6 +353,12 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
               DOI 10.17487/RFC2104, February 1997,
               <https://www.rfc-editor.org/info/rfc2104>.
 
+
+
+Wood                     Expires August 24, 2018                [Page 6]
+
+Internet-Draft           EDNS(0) Privacy Options           February 2018
+
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "DNS Security Introduction and Requirements",
               RFC 4033, DOI 10.17487/RFC4033, March 2005,
@@ -381,6 +397,10 @@ Author's Address
    United States of America
 
    Email: cawood@apple.com
+
+
+
+
 
 
 

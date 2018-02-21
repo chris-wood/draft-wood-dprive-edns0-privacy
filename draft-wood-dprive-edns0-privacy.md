@@ -44,31 +44,27 @@ TODO
 # Introduction {#introduction}
 
 The Domain Name System (DNS) {{RFC1035}} was designed to transport all messages
-in cleartext. By default, this provides no privacy, confidentiality, or 
-integrity (in the absence of DNSSEC {{RFC4033}}) for all client queries
-and responses. {{RFC7858}} standardizes running DNS over (D)TLS to protect
-data in transit. This prevents passive eavesdroppers from seeing cleartext
-data, though it does not mitigate traffic analysis of data based on packet
-sizing, for example, which can be an adequate side channel for learning 
-underlying queries and responses ((CITE:SHULMAN)). {{RFC7830}} and
-{{I-D.ietf-dprive-padding-policy}} offer mechanisms and advice for clients
-and servers to pad padding to queries and responses to mask real message
-size information. Padding profiles in {{I-D.ietf-dprive-padding-policy}}
-are informed by analyis of DNS message datasets ((TODO:CITE)), though more
-analysis could and should be done to better understand this mechanism. 
+in cleartext. This provides no privacy, confidentiality, or integrity
+(in the absence of DNSSEC {{RFC4033}}) for all client queries and responses
+against a network adversary.
+{{RFC7858}} standardizes running DNS over (D)TLS to protect
+data in transit.
 
-One privacy-sensitive side channel introduced by DNS recursive resolvers
-and not covered by existing mechanisms is caused by caching. Specifically, 
-recursive resolvers that cache responses and use them in response to queries
-make the observed latency to clients less than that for non-cached
-or stale records. Malicious clients may exploit this side channel as an 
-oracle to learn what records were previously requested by nearby clients.
-Source code for an attack exploiting this side channel is given in Appendix A.
-
-<!--
-TODO: comment that this is not a problem without TLS since you can see queries in the clear
-The attack here is to obviate the privacy gains of opportunistic TLS connections
--->
+Even if data is protected in transit, the current caching behavior of
+recursive DNS resolvers introduces a side channel for an active network
+adversary to learn queries made by other clients.
+Specifically, in response to a client's query, a recursive resolver will
+fetch the corresponding record by traversing the DNS hierarchy and cache
+it to more effieciently respond to the same query in the future.
+Returning a cached record is expected to be faster than making network
+requests to fetch it and that timing difference is observable by the
+client making the query.
+Because the cache is shared by all clients, if a client observes a fast
+response time for a given query it can infer that some other client has
+already made that query in the past.
+Malicious clients may exploit this caching behavior to use the cache
+as an oracle for the network activity of other clients.
+Proof of concept code is provided in Appendix A.
 
 In this document, we propose a new EDNS(0) option that allows clients to mark
 queries as privacy sensitive. We specify recursive behavior when processing

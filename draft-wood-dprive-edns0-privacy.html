@@ -300,12 +300,12 @@ address {
 <link href="#rfc.authors" rel="Chapter">
 
 
-  <meta name="generator" content="xml2rfc version 2.8.5 - https://tools.ietf.org/tools/xml2rfc" />
+  <meta name="generator" content="xml2rfc version 2.9.4 - https://tools.ietf.org/tools/xml2rfc" />
   <link rel="schema.dct" href="http://purl.org/dc/terms/" />
 
   <meta name="dct.creator" content="Wood, C." />
   <meta name="dct.identifier" content="urn:ietf:id:draft-wood-dprive-edns0-privacy-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2018-2-20" />
+  <meta name="dct.issued" scheme="ISO8601" content="2018-02-20" />
   <meta name="dct.abstract" content="TODO" />
   <meta name="description" content="TODO" />
 
@@ -395,8 +395,8 @@ address {
   <h1 id="rfc.section.1">
 <a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a>
 </h1>
-<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035" class="xref">[RFC1035]</a> was designed to transport all messages in cleartext. By default, this provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033" class="xref">[RFC4033]</a>) for all client queries and responses. <a href="#RFC7858" class="xref">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit. This prevents passive eavesdroppers from seeing cleartext data, though it does not mitigate traffic analysis of data based on packet sizing, for example, which can be an adequate side channel for learning underlying queries and responses ((CITE:SHULMAN)). <a href="#RFC7830" class="xref">[RFC7830]</a> and <a href="#I-D.ietf-dprive-padding-policy" class="xref">[I-D.ietf-dprive-padding-policy]</a> offer mechanisms and advice for clients and servers to pad padding to queries and responses to mask real message size information. Padding profiles in <a href="#I-D.ietf-dprive-padding-policy" class="xref">[I-D.ietf-dprive-padding-policy]</a> are informed by analyis of DNS message datasets ((TODO:CITE)), though more analysis could and should be done to better understand this mechanism.</p>
-<p id="rfc.section.1.p.2">One privacy-sensitive side channel introduced by DNS recursive resolvers and not covered by existing mechanisms is caused by caching. Specifically, recursive resolvers that cache responses and use them in response to queries make the observed latency to clients less than that for non-cached or stale records. Malicious clients may exploit this side channel as an oracle to learn what records were previously requested by nearby clients.  Source code for an attack exploiting this side channel is given in Appendix A.</p>
+<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035" class="xref">[RFC1035]</a> was designed to transport all messages in cleartext. This provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033" class="xref">[RFC4033]</a>) for all client queries and responses against a network adversary.  <a href="#RFC7858" class="xref">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit.</p>
+<p id="rfc.section.1.p.2">Even if data is protected in transit, the current caching behavior of recursive DNS resolvers introduces a side channel for an active network adversary to learn queries made by other clients.  Specifically, in response to a client&#8217;s query, a recursive resolver will fetch the corresponding record by traversing the DNS hierarchy and cache it to more effieciently respond to the same query in the future.  Returning a cached record is expected to be faster than making network requests to fetch it and that timing difference is observable by the client making the query.  Because the cache is shared by all clients, if a client observes a fast response time for a given query it can infer that some other client has already made that query in the past.  Malicious clients may exploit this caching behavior to use the cache as an oracle for the network activity of other clients.  Proof of concept code is provided in Appendix A.</p>
 <p id="rfc.section.1.p.3">In this document, we propose a new EDNS(0) option that allows clients to mark queries as privacy sensitive. We specify recursive behavior when processing private queries and caching their responses. Usage of this option SHOULD only be enabled when running over a secure transport such as TLS <a href="#RFC7858" class="xref">[RFC7858]</a>, as otherwise recursive resolvers or other responders are subject to denial-of-service attacks.</p>
 <h1 id="rfc.section.2">
 <a href="#rfc.section.2">2.</a> <a href="#terminology" id="terminology">Terminology</a>
