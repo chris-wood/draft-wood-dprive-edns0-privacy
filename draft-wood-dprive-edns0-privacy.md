@@ -206,6 +206,20 @@ in the range [0, T'], i.e,. with probability distribution function Pr[T = t] = 1
 distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k,
 where k is a parameter for the distribution.
 
+# DNS-over-HTTPS Application
+
+A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS (DOH) by 
+appending a random nonce to each request. Specifically, given a random N-byte nonce
+R, the following query parameter can be appended to a DOH query:
+
+~~~
+?rand=R
+~~~
+
+DOH recursive resolvers that use an HTTP caching layer to satisfy duplicate queries
+SHOULD not satisfy cached queries with the same "dns" parameter yet different (or no)
+"rand" parameter.
+
 # IANA Considerations
 
 ((TODO: codepoint for option type?))
