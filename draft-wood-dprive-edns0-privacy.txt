@@ -2,10 +2,12 @@
 
 
 
-Network Working Group                                            C. Wood
-Internet-Draft                                                Apple Inc.
-Intended status: Informational                            March 21, 2018
-Expires: September 22, 2018
+Network Working Group                                     O. Gudmundsson
+Internet-Draft                                               N. Sullivan
+Intended status: Informational                           Cloudflare Inc.
+Expires: September 22, 2018                                      C. Wood
+                                                              Apple Inc.
+                                                          March 21, 2018
 
 
                         EDNS(0) Privacy Options
@@ -51,9 +53,7 @@ Copyright Notice
 
 
 
-
-
-Wood                   Expires September 22, 2018               [Page 1]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 1]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -77,7 +77,7 @@ Table of Contents
    12. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   7
    13. Normative References  . . . . . . . . . . . . . . . . . . . .   7
    Appendix A.  Timing Oracle Attack Code  . . . . . . . . . . . . .   8
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Introduction
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Wood                   Expires September 22, 2018               [Page 2]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 2]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -165,7 +165,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 
-Wood                   Expires September 22, 2018               [Page 3]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 3]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -221,7 +221,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 
-Wood                   Expires September 22, 2018               [Page 4]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 4]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -277,7 +277,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 
-Wood                   Expires September 22, 2018               [Page 5]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 5]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -333,7 +333,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 
-Wood                   Expires September 22, 2018               [Page 6]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 6]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -389,7 +389,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 
-Wood                   Expires September 22, 2018               [Page 7]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 7]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
@@ -418,7 +418,19 @@ Appendix A.  Timing Oracle Attack Code
    TODO: include bash script that connects to recursive and performs
    correlation attack
 
-Author's Address
+Authors' Addresses
+
+   Olafur Gudmundsson
+   Cloudflare Inc.
+
+   Email: olafur+ietf@cloudflare.com
+
+
+   Nick Sullivan
+   Cloudflare Inc.
+
+   Email: nick@cloudflare.com
+
 
    Christopher A. Wood
    Apple Inc.
@@ -433,16 +445,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Wood                   Expires September 22, 2018               [Page 8]
+Gudmundsson, et al.    Expires September 22, 2018               [Page 8]

@@ -13,6 +13,16 @@ pi: [toc, sortrefs, symrefs]
 
 author:
   -
+    ins: O. Gudmundsson
+    name: Olafur Gudmundsson
+    org: Cloudflare Inc.
+    email: olafur+ietf@cloudflare.com
+  -
+    ins: N. Sullivan
+    name: Nick Sullivan
+    org: Cloudflare Inc.
+    email: nick@cloudflare.com
+  -
     ins: C. A. Wood
     name: Christopher A. Wood
     org: Apple Inc.
