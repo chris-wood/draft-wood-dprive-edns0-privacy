@@ -4,8 +4,8 @@
 
 Network Working Group                                            C. Wood
 Internet-Draft                                                Apple Inc.
-Intended status: Informational                         February 20, 2018
-Expires: August 24, 2018
+Intended status: Informational                            March 21, 2018
+Expires: September 22, 2018
 
 
                         EDNS(0) Privacy Options
@@ -30,7 +30,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on August 24, 2018.
+   This Internet-Draft will expire on September 22, 2018.
 
 Copyright Notice
 
@@ -53,29 +53,31 @@ Copyright Notice
 
 
 
-Wood                     Expires August 24, 2018                [Page 1]
+Wood                   Expires September 22, 2018               [Page 1]
 
-Internet-Draft           EDNS(0) Privacy Options           February 2018
+Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   3.  Cache Probe Privacy Attack  . . . . . . . . . . . . . . . . .   3
-   4.  "Private" Option  . . . . . . . . . . . . . . . . . . . . . .   3
-   5.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   4
-   6.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   4
-     6.1.  Segmented Caches  . . . . . . . . . . . . . . . . . . . .   4
-     6.2.  Artificial Delays . . . . . . . . . . . . . . . . . . . .   5
-       6.2.1.  Delay Distributions . . . . . . . . . . . . . . . . .   5
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
-   9.  Privacy Considerations  . . . . . . . . . . . . . . . . . . .   6
-   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   6
-   11. Normative References  . . . . . . . . . . . . . . . . . . . .   6
-   Appendix A.  Timing Oracle Attack Code  . . . . . . . . . . . . .   7
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   3.  Recursive Resolver Deployments  . . . . . . . . . . . . . . .   3
+   4.  Cache Probe Privacy Attack  . . . . . . . . . . . . . . . . .   3
+   5.  TTL-CAP Option  . . . . . . . . . . . . . . . . . . . . . . .   4
+   6.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   4
+   7.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   5
+     7.1.  Segmented Caches  . . . . . . . . . . . . . . . . . . . .   5
+     7.2.  Artificial Delays . . . . . . . . . . . . . . . . . . . .   6
+       7.2.1.  Delay Distributions . . . . . . . . . . . . . . . . .   6
+   8.  DNS-over-HTTPS Application  . . . . . . . . . . . . . . . . .   6
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
+   10. Security Considerations . . . . . . . . . . . . . . . . . . .   7
+   11. Privacy Considerations  . . . . . . . . . . . . . . . . . . .   7
+   12. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   7
+   13. Normative References  . . . . . . . . . . . . . . . . . . . .   7
+   Appendix A.  Timing Oracle Attack Code  . . . . . . . . . . . . .   8
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Introduction
 
@@ -90,7 +92,7 @@ Table of Contents
    network adversary to learn queries made by other clients.
    Specifically, in response to a client's query, a recursive resolver
    will fetch the corresponding record by traversing the DNS hierarchy
-   and cache it to more effieciently respond to the same query in the
+   and cache it to more efficiently respond to the same query in the
    future.  Returning a cached record is expected to be faster than
    making network requests to fetch it and that timing difference is
    observable by the client making the query.  Because the cache is
@@ -104,21 +106,29 @@ Table of Contents
    to mark queries as privacy sensitive.  We specify recursive behavior
    when processing private queries and caching their responses.  Usage
    of this option SHOULD only be enabled when running over a secure
+
+
+
+Wood                   Expires September 22, 2018               [Page 2]
+
+Internet-Draft           EDNS(0) Privacy Options              March 2018
+
+
    transport such as TLS [RFC7858], as otherwise recursive resolvers or
    other responders are subject to denial-of-service attacks.
-
-
-Wood                     Expires August 24, 2018                [Page 2]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
 
 2.  Terminology
 
    The terms "Requestor" and "Responder" are to be interpreted as
    specified in [RFC6891].
 
-3.  Cache Probe Privacy Attack
+   o  Private query: A query whose CAP-TTL value is "0."
+
+3.  Recursive Resolver Deployments
+
+   TODO(caw): fill this in based on Olafur's comments and feedback
+
+4.  Cache Probe Privacy Attack
 
    Securing DNS traffic in transit via DNS-over-TLS has many benefits.
    Minimally, it prevents eavesdroppers observing queries and responses
@@ -153,28 +163,22 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
       resolve?  If so, this may inflate time required to answer the
       query.
 
+
+
+Wood                   Expires September 22, 2018               [Page 3]
+
+Internet-Draft           EDNS(0) Privacy Options              March 2018
+
+
    While learning the existence of a certain query may not always
    constitute a privacy violation, it may for some clients.
 
-
-
-Wood                     Expires August 24, 2018                [Page 3]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
-
-4.  "Private" Option
+5.  TTL-CAP Option
 
    EDNS(0) [RFC6891] specifies a mechanism to include new options in DNS
-   messages.  This document specifies a new "Private" option that allows
-   clients to indicate
-
-
-
-Wood                     Expires August 24, 2018                [Page 3]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
+   messages.  This document specifies a new "TTL-CAP" option that allows
+   clients to express the maximum desired cache lifetime for DNS query
+   answers.
 
    0                       8                      16
    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -182,33 +186,58 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
    |                 OPTION-LENGTH                 |
    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-   |     PRIVATE Option    |
-   +--+--+--+--+--+--+--+--+
+   |                 TTL-CAP Option                |
+   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
-   The OPTION-CODE for the "Private" option is TBD.
+   The OPTION-CODE for the "TTL-CAP" option is TBD.
 
-   The OPTION-LENGTH for the "Private" option is one octet.
+   The OPTION-LENGTH for the "TTL-CAP" option is one octet.
 
-   The PRIVATE octet MUST be set to 0x01.  Presence of this option
-   indicates that a query is private.  Other values MUST NOT be used.
-   Responders, such as recursive resolvers, MUST drop the query if
-   another value is set, as discussed in Section Section 6.
+   The CAP-TTL value is set to an integer representing the maximum cache
+   time for a DNS answer.  Responders, such as recursive resolvers, that
+   do not have the answer already cached MUST NOT cache the answer
+   beyond this TTL.  This value does not affect entries that are already
+   cached.  A CAP-TTL value of "0" indicates that the answer MUST NOT be
+   cached.  Such queries are called "private."
 
-5.  Requestor Usage and Behavior
+   This option does not affect intermediate queries performed to produce
+   an answer to a query.  Responders MUST only honor it for the final
+   answer.  For example, when answering a query for a.b.c.d.example.com,
+   only the final answer for a.b.c.d.example.com is affected.  All
+   intermediate queries, e.g., for .com, .example.com, etc., MAY be
+   cached as needed.
 
-   Requestors MAY include a "Private" option for any query deemed
+6.  Requestor Usage and Behavior
+
+   Requestors MAY include a "TTL-CAP" option for any query deemed
    private or sensitive.  This may include queries for explicitly known-
    to-be private domains or for all domains when operating in a
    "private" mode.  Specific recommendations for when to include this
    option are outside the scope of this document.
 
-6.  Responder Usage and Behavior
 
-   There are (at least) two ways responders can handle responder usage.
-   They share a common principle: private queries avoid using the same
-   cache as non-private queries.  This has the effect of removing side
-   channels from private queries.  The two strategies described here
-   work as follows:
+
+
+
+
+
+Wood                   Expires September 22, 2018               [Page 4]
+
+Internet-Draft           EDNS(0) Privacy Options              March 2018
+
+
+7.  Responder Usage and Behavior
+
+   There are two ways responders can handle a "CAP-TTL" Options.  If the
+   value is non-zero, responders MUST not cache any answer beyond the
+   indicated time.  If the value is zero ("0"), the final answer MUST
+   NOT be cached at all.
+
+   CAP-TTL values of "0" cause responders to not cache valid answers for
+   any requestor.  If requestor's request the same query again within
+   the valid answer's TTL and a CAP-TTL value of "0," the responder will
+   be forced to perform a wasteful lookup.  There are (at least) two
+   ways responders MAY adjust their cache policy to address this issue:
 
    1.  Require responders to use per-client, segmented caches for
        private queries that are flushed when secure connections are torn
@@ -217,21 +246,12 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    2.  Require responders to "ignore" cached responses and emulate fetch
        delays for queries (and responses) marked private.
 
-   We describe each approach in more detail below.
+   The following subsections describe these in more detail.
 
-6.1.  Segmented Caches
+7.1.  Segmented Caches
 
    Responders that receive a query Q without the "Private" options may
    treat it as normal, i.e., by serving a response from cache if
-
-
-
-
-Wood                     Expires August 24, 2018                [Page 4]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
-
    available.  For a query Q with a "Private" option sent from client S,
    responders MUST do the following:
 
@@ -253,7 +273,16 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    malicious clients may flood resolvers with private queries and induce
    cache fragmentation.
 
-6.2.  Artificial Delays
+
+
+
+
+Wood                   Expires September 22, 2018               [Page 5]
+
+Internet-Draft           EDNS(0) Privacy Options              March 2018
+
+
+7.2.  Artificial Delays
 
    Responders that receive a query Q with "Private" options MUST do one
    of the following to satisfy Q:
@@ -268,7 +297,7 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
        some time T has passed.  T is a random variable with distribution
        equal to the resolution distribution time of R.
 
-6.2.1.  Delay Distributions
+7.2.1.  Delay Distributions
 
    T measurement and distribution estimation is critical for masking the
    timing side channel described in Section Section 1.  Both should be
@@ -276,25 +305,9 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
    overhead.  We draw on observations and experiments by [Acs17] in
    deciding these factors.
 
-
-
-
-Wood                     Expires August 24, 2018                [Page 5]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
-
    Responders SHOULD measure query resolution time T' and use this in
    selecting T's distribution.  There are two recommended delay
    strategies for responders assuming knowledge of T', including:
-
-
-
-
-Wood                     Expires August 24, 2018                [Page 5]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
 
    1.  Uniform: Delay for some time T* that is selected uniformly at
        random in the range [0, T'], i.e,. with probability distribution
@@ -305,23 +318,43 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
        function Pr[T = t] = (1 - t) * t^k, where k is a parameter for
        the distribution.
 
-7.  IANA Considerations
+8.  DNS-over-HTTPS Application
+
+   A similar per-query "no-cache" flag may be implemented with DNS-over-
+   HTTPS (DOH) by appending a random nonce to each request.
+   Specifically, given a random N-byte nonce R, the following query
+   parameter can be appended to a DOH query:
+
+   ?rand=R
+
+   DOH recursive resolvers that use an HTTP caching layer to satisfy
+   duplicate queries SHOULD not satisfy cached queries with the same
+   "dns" parameter yet different (or no) "rand" parameter.
+
+
+
+Wood                   Expires September 22, 2018               [Page 6]
+
+Internet-Draft           EDNS(0) Privacy Options              March 2018
+
+
+9.  IANA Considerations
 
    ((TODO: codepoint for option type?))
 
-8.  Security Considerations
+10.  Security Considerations
 
    TODO: discuss client selfishness (and starvation?)
 
-9.  Privacy Considerations
+11.  Privacy Considerations
 
    TODO
 
-10.  Acknowledgments
+12.  Acknowledgments
 
    TODO
 
-11.  Normative References
+13.  Normative References
 
    [Acs17]    "Privacy-Aware Caching in Information-Centric Networking",
               n.d., <http://ieeexplore.ieee.org/document/7874168/>.
@@ -333,36 +366,33 @@ Internet-Draft           EDNS(0) Privacy Options           February 2018
 
    [I-D.ietf-tls-tls13]
               Rescorla, E., "The Transport Layer Security (TLS) Protocol
-              Version 1.3", draft-ietf-tls-tls13-24 (work in progress),
-              February 2018.
+              Version 1.3", draft-ietf-tls-tls13-28 (work in progress),
+              March 2018.
 
    [RFC1035]  Mockapetris, P., "Domain names - implementation and
               specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
               November 1987, <https://www.rfc-editor.org/info/rfc1035>.
-
-
-
-
-Wood                     Expires August 24, 2018                [Page 6]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
 
    [RFC2104]  Krawczyk, H., Bellare, M., and R. Canetti, "HMAC: Keyed-
               Hashing for Message Authentication", RFC 2104,
               DOI 10.17487/RFC2104, February 1997,
               <https://www.rfc-editor.org/info/rfc2104>.
 
-
-
-Wood                     Expires August 24, 2018                [Page 6]
-
-Internet-Draft           EDNS(0) Privacy Options           February 2018
-
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "DNS Security Introduction and Requirements",
               RFC 4033, DOI 10.17487/RFC4033, March 2005,
               <https://www.rfc-editor.org/info/rfc4033>.
+
+
+
+
+
+
+
+Wood                   Expires September 22, 2018               [Page 7]
+
+Internet-Draft           EDNS(0) Privacy Options              March 2018
+
 
    [RFC5077]  Salowey, J., Zhou, H., Eronen, P., and H. Tschofenig,
               "Transport Layer Security (TLS) Session Resumption without
@@ -409,4 +439,10 @@ Author's Address
 
 
 
-Wood                     Expires August 24, 2018                [Page 7]
+
+
+
+
+
+
+Wood                   Expires September 22, 2018               [Page 8]
