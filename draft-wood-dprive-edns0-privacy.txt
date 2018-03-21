@@ -64,11 +64,11 @@ Table of Contents
    2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
    3.  Recursive Resolver Deployments  . . . . . . . . . . . . . . .   3
    4.  Cache Probe Privacy Attack  . . . . . . . . . . . . . . . . .   3
-   5.  TTL-CAP Option  . . . . . . . . . . . . . . . . . . . . . . .   4
+   5.  PRIVATE Option  . . . . . . . . . . . . . . . . . . . . . . .   4
    6.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   4
-   7.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   5
+   7.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   4
      7.1.  Segmented Caches  . . . . . . . . . . . . . . . . . . . .   5
-     7.2.  Artificial Delays . . . . . . . . . . . . . . . . . . . .   6
+     7.2.  Artificial Delays . . . . . . . . . . . . . . . . . . . .   5
        7.2.1.  Delay Distributions . . . . . . . . . . . . . . . . .   6
    8.  DNS-over-HTTPS Application  . . . . . . . . . . . . . . . . .   6
    9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   7
@@ -122,7 +122,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
    The terms "Requestor" and "Responder" are to be interpreted as
    specified in [RFC6891].
 
-   o  Private query: A query whose CAP-TTL value is "0."
+   o  Private query: A query carrying the PRIVATE EDNS(0) option.
 
 3.  Recursive Resolver Deployments
 
@@ -173,10 +173,10 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
    While learning the existence of a certain query may not always
    constitute a privacy violation, it may for some clients.
 
-5.  TTL-CAP Option
+5.  PRIVATE Option
 
    EDNS(0) [RFC6891] specifies a mechanism to include new options in DNS
-   messages.  This document specifies a new "TTL-CAP" option that allows
+   messages.  This document specifies a new "PRIVATE" option that allows
    clients to express the maximum desired cache lifetime for DNS query
    answers.
 
@@ -186,19 +186,17 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
    |                 OPTION-LENGTH                 |
    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-   |                 TTL-CAP Option                |
-   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+   |    PRIVATE Option     |
+   +--+--+--+--+--+--+--+--+
 
-   The OPTION-CODE for the "TTL-CAP" option is TBD.
+   The OPTION-CODE for the "PRIVATE" option is TBD.
 
-   The OPTION-LENGTH for the "TTL-CAP" option is one octet.
+   The OPTION-LENGTH for the "PRIVATE" option is one octet.
 
-   The CAP-TTL value is set to an integer representing the maximum cache
-   time for a DNS answer.  Responders, such as recursive resolvers, that
-   do not have the answer already cached MUST NOT cache the answer
-   beyond this TTL.  This value does not affect entries that are already
-   cached.  A CAP-TTL value of "0" indicates that the answer MUST NOT be
-   cached.  Such queries are called "private."
+   The PRIVATE octet MUST be set to 0x01.  Presence of this option
+   indicates that a query is private.  Other values MUST NOT be used.
+   Responders, such as recursive resolvers, MUST drop the query if
+   another value is set, as discussed in Section Section 7.
 
    This option does not affect intermediate queries performed to produce
    an answer to a query.  Responders MUST only honor it for the final
@@ -209,14 +207,16 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 6.  Requestor Usage and Behavior
 
-   Requestors MAY include a "TTL-CAP" option for any query deemed
+   Requestors MAY include a "PRIVATE" option for any query deemed
    private or sensitive.  This may include queries for explicitly known-
    to-be private domains or for all domains when operating in a
    "private" mode.  Specific recommendations for when to include this
    option are outside the scope of this document.
 
+7.  Responder Usage and Behavior
 
-
+   There are two ways responders can handle a "PRIVATE" options.  If
+   present, responders MUST not cache any final answer beyond the
 
 
 
@@ -226,18 +226,13 @@ Wood                   Expires September 22, 2018               [Page 4]
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
-7.  Responder Usage and Behavior
+   indicated time.  Responders MAY cache any intermediate answer used to
+   produce the final query.
 
-   There are two ways responders can handle a "CAP-TTL" Options.  If the
-   value is non-zero, responders MUST not cache any answer beyond the
-   indicated time.  If the value is zero ("0"), the final answer MUST
-   NOT be cached at all.
-
-   CAP-TTL values of "0" cause responders to not cache valid answers for
-   any requestor.  If requestor's request the same query again within
-   the valid answer's TTL and a CAP-TTL value of "0," the responder will
-   be forced to perform a wasteful lookup.  There are (at least) two
-   ways responders MAY adjust their cache policy to address this issue:
+   In cases where responders need to reduce upstream redundant queries,
+   e.g., because they are expensive or otherwise reveal more information
+   to authoritative servers, there are (at least) two ways responders
+   MAY adjust their cache policy to handle private queries:
 
    1.  Require responders to use per-client, segmented caches for
        private queries that are flushed when secure connections are torn
@@ -273,6 +268,11 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
    malicious clients may flood resolvers with private queries and induce
    cache fragmentation.
 
+7.2.  Artificial Delays
+
+   Responders that receive a query Q with "Private" options MUST do one
+   of the following to satisfy Q:
+
 
 
 
@@ -281,11 +281,6 @@ Wood                   Expires September 22, 2018               [Page 5]
 
 Internet-Draft           EDNS(0) Privacy Options              March 2018
 
-
-7.2.  Artificial Delays
-
-   Responders that receive a query Q with "Private" options MUST do one
-   of the following to satisfy Q:
 
    1.  If response R is not cached, resolve Q using upstream
        authoritative or recursive resolvers.
@@ -330,6 +325,11 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
    DOH recursive resolvers that use an HTTP caching layer to satisfy
    duplicate queries SHOULD not satisfy cached queries with the same
    "dns" parameter yet different (or no) "rand" parameter.
+
+
+
+
+
 
 
 

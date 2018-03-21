@@ -292,7 +292,7 @@ address {
 <link href="#rfc.section.2" rel="Chapter" title="2 Terminology">
 <link href="#rfc.section.3" rel="Chapter" title="3 Recursive Resolver Deployments">
 <link href="#rfc.section.4" rel="Chapter" title="4 Cache Probe Privacy Attack">
-<link href="#rfc.section.5" rel="Chapter" title="5 TTL-CAP Option">
+<link href="#rfc.section.5" rel="Chapter" title="5 PRIVATE Option">
 <link href="#rfc.section.6" rel="Chapter" title="6 Requestor Usage and Behavior">
 <link href="#rfc.section.7" rel="Chapter" title="7 Responder Usage and Behavior">
 <link href="#rfc.section.7.1" rel="Chapter" title="7.1 Segmented Caches">
@@ -372,7 +372,7 @@ address {
 </li>
 <li>4.   <a href="#rfc.section.4">Cache Probe Privacy Attack</a>
 </li>
-<li>5.   <a href="#rfc.section.5">TTL-CAP Option</a>
+<li>5.   <a href="#rfc.section.5">PRIVATE Option</a>
 </li>
 <li>6.   <a href="#rfc.section.6">Requestor Usage and Behavior</a>
 </li>
@@ -416,7 +416,7 @@ address {
 <p id="rfc.section.2.p.1">The terms &#8220;Requestor&#8221; and &#8220;Responder&#8221; are to be interpreted as specified in <a href="#RFC6891" class="xref">[RFC6891]</a>.</p>
 <p></p>
 
-<ul><li>Private query: A query whose CAP-TTL value is &#8220;0.&#8221;</li></ul>
+<ul><li>Private query: A query carrying the PRIVATE EDNS(0) option.</li></ul>
 <h1 id="rfc.section.3">
 <a href="#rfc.section.3">3.</a> <a href="#recursive-resolver-deployments" id="recursive-resolver-deployments">Recursive Resolver Deployments</a>
 </h1>
@@ -435,9 +435,9 @@ address {
 </ul>
 <p id="rfc.section.4.p.5">While learning the existence of a certain query may not always constitute a privacy violation, it may for some clients.</p>
 <h1 id="rfc.section.5">
-<a href="#rfc.section.5">5.</a> <a href="#ttl-cap-option" id="ttl-cap-option">TTL-CAP Option</a>
+<a href="#rfc.section.5">5.</a> <a href="#private-option" id="private-option">PRIVATE Option</a>
 </h1>
-<p id="rfc.section.5.p.1">EDNS(0) <a href="#RFC6891" class="xref">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;TTL-CAP&#8221; option that allows clients to express the maximum desired cache lifetime for DNS query answers.</p>
+<p id="rfc.section.5.p.1">EDNS(0) <a href="#RFC6891" class="xref">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;PRIVATE&#8221; option that allows clients to express the maximum desired cache lifetime for DNS query answers.</p>
 <pre>
 0                       8                      16
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -445,22 +445,22 @@ address {
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |                 OPTION-LENGTH                 |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|                 TTL-CAP Option                |
-+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|    PRIVATE Option     |
++--+--+--+--+--+--+--+--+
 </pre>
-<p id="rfc.section.5.p.2">The OPTION-CODE for the &#8220;TTL-CAP&#8221; option is TBD.</p>
-<p id="rfc.section.5.p.3">The OPTION-LENGTH for the &#8220;TTL-CAP&#8221; option is one octet.</p>
-<p id="rfc.section.5.p.4">The CAP-TTL value is set to an integer representing the maximum cache time for a DNS answer. Responders, such as recursive resolvers, that do not have the answer already cached MUST NOT cache the answer beyond this TTL. This value does not affect entries that are already cached.  A CAP-TTL value of &#8220;0&#8221; indicates that the answer MUST NOT be cached. Such queries are called &#8220;private.&#8221;</p>
+<p id="rfc.section.5.p.2">The OPTION-CODE for the &#8220;PRIVATE&#8221; option is TBD.</p>
+<p id="rfc.section.5.p.3">The OPTION-LENGTH for the &#8220;PRIVATE&#8221; option is one octet.</p>
+<p id="rfc.section.5.p.4">The PRIVATE octet MUST be set to 0x01. Presence of this option indicates that a query is private. Other values MUST NOT be used. Responders, such as recursive resolvers, MUST drop the query if another value is set, as discussed in Section <a href="#usage-recursive" class="xref">Section 7</a>.</p>
 <p id="rfc.section.5.p.5">This option does not affect intermediate queries performed to produce an answer to a query. Responders MUST only honor it for the final answer. For example, when answering a query for a.b.c.d.example.com, only the final answer for a.b.c.d.example.com is affected. All intermediate queries, e.g., for .com, .example.com, etc., MAY be cached as needed.</p>
 <h1 id="rfc.section.6">
 <a href="#rfc.section.6">6.</a> <a href="#usage-stub" id="usage-stub">Requestor Usage and Behavior</a>
 </h1>
-<p id="rfc.section.6.p.1">Requestors MAY include a &#8220;TTL-CAP&#8221; option for any query deemed private or sensitive. This may include queries for explicitly known-to-be private domains or for all domains when operating in a &#8220;private&#8221; mode. Specific recommendations for when to include this option are outside the scope of this document.</p>
+<p id="rfc.section.6.p.1">Requestors MAY include a &#8220;PRIVATE&#8221; option for any query deemed private or sensitive. This may include queries for explicitly known-to-be private domains or for all domains when operating in a &#8220;private&#8221; mode. Specific recommendations for when to include this option are outside the scope of this document.</p>
 <h1 id="rfc.section.7">
 <a href="#rfc.section.7">7.</a> <a href="#usage-recursive" id="usage-recursive">Responder Usage and Behavior</a>
 </h1>
-<p id="rfc.section.7.p.1">There are two ways responders can handle a &#8220;CAP-TTL&#8221; Options.  If the value is non-zero, responders MUST not cache any answer beyond the indicated time. If the value is zero (&#8220;0&#8221;), the final answer MUST NOT be cached at all.</p>
-<p id="rfc.section.7.p.2">CAP-TTL values of &#8220;0&#8221; cause responders to not cache valid answers for any requestor. If requestor&#8217;s request the same query again within the valid answer&#8217;s TTL and a CAP-TTL value of &#8220;0,&#8221; the responder will be forced to perform a wasteful lookup. There are (at least) two ways responders MAY adjust their cache policy to address this issue:</p>
+<p id="rfc.section.7.p.1">There are two ways responders can handle a &#8220;PRIVATE&#8221; options.  If present, responders MUST not cache any final answer beyond the indicated time. Responders MAY cache any intermediate answer used to produce the final query.</p>
+<p id="rfc.section.7.p.2">In cases where responders need to reduce upstream redundant queries, e.g., because they are expensive or otherwise reveal more information to authoritative servers, there are (at least) two ways responders MAY adjust their cache policy to handle private queries:</p>
 <p></p>
 
 <ol>

@@ -78,7 +78,7 @@ attacks.
 The terms "Requestor" and "Responder" are to be interpreted as
 specified in {{RFC6891}}.
 
-- Private query: A query whose CAP-TTL value is "0."
+- Private query: A query carrying the PRIVATE EDNS(0) option.
 
 # Recursive Resolver Deployments
 
@@ -110,15 +110,16 @@ Severity of this attack depends on several factors:
 
 - How many clients (stubs) are served by R.
 - What types of queries are requested by other clients of R. For example, do they require more
-recursive resolution steps to resolve? If so, this may inflate time required to answer the query. 
+recursive resolution steps to resolve? If so, this may inflate time required to answer 
+the query. 
 
 While learning the existence of a certain query may not always constitute a privacy violation,
 it may for some clients. 
 
-# TTL-CAP Option
+# PRIVATE Option
 
 EDNS(0) {{RFC6891}} specifies a mechanism to include new options in DNS messages.
-This document specifies a new "TTL-CAP" option that allows clients to express
+This document specifies a new "PRIVATE" option that allows clients to express
 the maximum desired cache lifetime for DNS query answers. 
 
 ~~~
@@ -128,21 +129,18 @@ the maximum desired cache lifetime for DNS query answers.
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |                 OPTION-LENGTH                 |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|                 TTL-CAP Option                |
-+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+|    PRIVATE Option     |
++--+--+--+--+--+--+--+--+
 ~~~
 
-The OPTION-CODE for the "TTL-CAP" option is TBD.
+The OPTION-CODE for the "PRIVATE" option is TBD.
 
-The OPTION-LENGTH for the "TTL-CAP" option is one octet.
+The OPTION-LENGTH for the "PRIVATE" option is one octet.
 
-The CAP-TTL value is set to an integer representing the 
-maximum cache time for a DNS answer. Responders, such as 
-recursive resolvers, that do not have the answer already
-cached MUST NOT cache the answer beyond this TTL. This
-value does not affect entries that are already cached. 
-A CAP-TTL value of "0" indicates that the answer MUST NOT
-be cached. Such queries are called "private."
+The PRIVATE octet MUST be set to 0x01. Presence of this
+option indicates that a query is private. Other values MUST
+NOT be used. Responders, such as recursive resolvers, MUST drop 
+the query if another value is set, as discussed in Section {{usage-recursive}}.
 
 This option does not affect intermediate queries performed
 to produce an answer to a query. Responders MUST only 
@@ -153,7 +151,7 @@ e.g., for .com, .example.com, etc., MAY be cached as needed.
 
 # Requestor Usage and Behavior {#usage-stub}
 
-Requestors MAY include a "TTL-CAP" option for any query deemed private or 
+Requestors MAY include a "PRIVATE" option for any query deemed private or 
 sensitive. This may include queries for explicitly known-to-be private 
 domains or for all domains when operating in a "private" mode. Specific
 recommendations for when to include this option are outside the scope
@@ -161,16 +159,15 @@ of this document.
 
 # Responder Usage and Behavior {#usage-recursive}
 
-There are two ways responders can handle a "CAP-TTL" Options. 
-If the value is non-zero, responders MUST not cache any answer beyond the 
-indicated time. If the value is zero ("0"), the final answer MUST NOT be 
-cached at all. 
+There are two ways responders can handle a "PRIVATE" options. 
+If present, responders MUST not cache any final answer beyond the 
+indicated time. Responders MAY cache any intermediate answer used 
+to produce the final query.
 
-CAP-TTL values of "0" cause responders to not cache valid answers for any
-requestor. If requestor's request the same query again within the valid
-answer's TTL and a CAP-TTL value of "0," the responder will be forced to 
-perform a wasteful lookup. There are (at least) two ways responders MAY
-adjust their cache policy to address this issue:
+In cases where responders need to reduce upstream redundant queries, e.g.,
+because they are expensive or otherwise reveal more information to authoritative
+servers, there are (at least) two ways responders MAY adjust their cache 
+policy to handle private queries:
 
 1. Require responders to use per-client, segmented caches for private queries that are
 flushed when secure connections are torn down.
@@ -191,8 +188,8 @@ in S's private cache.
 
 When S's connection to R is torn down, S's private cache MUST be flushed and memory released.
 Responders SHOULD apply whatever per-client caching policy is sensible to balance utility
-amongst shared (non-private) and private caches. Segmented caches introduce more memory requirements 
-for resolvers at the cost of improving client privacy.
+amongst shared (non-private) and private caches. Segmented caches introduce more memory 
+requirements for resolvers at the cost of improving client privacy.
 
 This approach is only viable when clients connect to resolvers over a session-based
 secure transport such as TLS or DTLS. Otherwise, malicious clients may flood
