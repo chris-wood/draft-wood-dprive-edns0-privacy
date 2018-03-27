@@ -10,12 +10,15 @@ Expires: September 28, 2018                                      C. Wood
                                                           March 27, 2018
 
 
-                        EDNS(0) Privacy Options
+                         EDNS(0) Private Option
                  draft-wood-dprive-edns0-privacy-latest
 
 Abstract
 
-   TODO
+   This document specifies the EDNS(0) "Private" option, which allows
+   DNS clients to signal to servers (recursive resolvers) that query
+   answers should not be cached.  This option is intended to mitigate
+   cache probing attacks on DNS query privacy.
 
 Status of This Memo
 
@@ -46,17 +49,17 @@ Copyright Notice
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
-   the Trust Legal Provisions and are provided without warranty as
-   described in the Simplified BSD License.
-
 
 
 
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 1]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
+
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
 
 Table of Contents
 
@@ -102,18 +105,19 @@ Table of Contents
    behavior to use the cache as an oracle for the network activity of
    other clients.  Proof of concept code is provided in Appendix A.
 
-   In this document, we propose a new EDNS(0) option that allows clients
-   to mark queries as privacy sensitive.  We specify recursive behavior
-   when processing private queries and caching their responses.  Usage
-   of this option SHOULD only be enabled when running over a secure
+
 
 
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 2]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
 
+   In this document, we propose a new EDNS(0) option that allows clients
+   to mark queries as privacy sensitive.  We specify recursive behavior
+   when processing private queries and caching their responses.  Usage
+   of this option SHOULD only be enabled when running over a secure
    transport such as TLS [RFC7858], as otherwise recursive resolvers or
    other responders are subject to denial-of-service attacks.
 
@@ -159,16 +163,15 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
       resolve?  If so, this may inflate time required to answer the
       query.
 
-   While learning the existence of a certain query may not always
-   constitute a privacy violation, it may for some clients.
-
-
 
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 3]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
+
+   While learning the existence of a certain query may not always
+   constitute a privacy violation, it may for some clients.
 
 3.1.  Recursive Resolver Deployments
 
@@ -218,12 +221,9 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 
 
-
-
-
 Gudmundsson, et al.    Expires September 28, 2018               [Page 4]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
 
 5.  Requestor Usage and Behavior
@@ -279,7 +279,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 5]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
 
    This approach is only viable when clients connect to resolvers over a
@@ -335,7 +335,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 6]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
 
    ?rand=R
@@ -391,7 +391,7 @@ Internet-Draft           EDNS(0) Privacy Options              March 2018
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 7]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
 
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
@@ -447,7 +447,7 @@ Authors' Addresses
 
 Gudmundsson, et al.    Expires September 28, 2018               [Page 8]
 
-Internet-Draft           EDNS(0) Privacy Options              March 2018
+Internet-Draft           EDNS(0) Private Option               March 2018
 
 
    Christopher A. Wood

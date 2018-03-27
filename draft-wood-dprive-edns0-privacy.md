@@ -1,6 +1,6 @@
 ---
-title: EDNS(0) Privacy Options
-abbrev: EDNS(0) Privacy Options
+title: EDNS(0) Private Option
+abbrev: EDNS(0) Private Option
 docname: draft-wood-dprive-edns0-privacy-latest
 date:
 category: info
@@ -47,7 +47,10 @@ normative:
 
 --- abstract
 
-TODO
+This document specifies the EDNS(0) "Private" option, which allows
+DNS clients to signal to servers (recursive resolvers) that query
+answers should not be cached. This option is intended to mitigate
+cache probing attacks on DNS query privacy.
 
 --- middle
 
