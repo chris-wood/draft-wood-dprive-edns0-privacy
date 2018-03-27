@@ -90,9 +90,7 @@ specified in {{RFC6891}}.
 
 - Private query: A query carrying the PRIVATE EDNS(0) option.
 
-# Recursive Resolver Deployments
 
-TODO(caw): fill this in based on Olafur's comments and feedback
 
 # Cache Probe Privacy Attack {#attacks}
 
@@ -125,6 +123,16 @@ the query.
 
 While learning the existence of a certain query may not always constitute a privacy violation,
 it may for some clients. 
+
+## Recursive Resolver Deployments
+
+Large-scale recursive resolvers, such as those operated by Quad9, Cloudflare, and Google,
+traditionally deploy several servers behind well known anycast IP addresses, such 
+as 8.8.8.8 or 9.9.9.9. Thus, stub queries to such well known resolvers may not be 
+serviced by the same logical recursive resolver. UDP queries and TCP connections
+may be routed to different resolvers based on distance and connection cost.
+This increases the difficulty of cache probing attacks. Recursive resolvers that are not
+deployed at such large scales are more susceptible to this type of attack.
 
 # PRIVATE Option
 
