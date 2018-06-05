@@ -77,7 +77,6 @@ response time for a given query it can infer that some other client has
 already made that query in the past.
 Malicious clients may exploit this caching behavior to use the cache
 as an oracle for the network activity of other clients.
-Proof of concept code is provided in Appendix A.
 
 In this document, we propose a new EDNS(0) option that allows clients to mark
 queries as privacy sensitive. We specify recursive behavior when processing
@@ -92,8 +91,6 @@ The terms "Requestor" and "Responder" are to be interpreted as
 specified in {{RFC6891}}.
 
 - Private query: A query carrying the PRIVATE EDNS(0) option.
-
-
 
 # Cache Probe Privacy Attack {#attacks}
 
@@ -180,24 +177,14 @@ of this document.
 
 # Responder Usage and Behavior {#usage-recursive}
 
-There are two ways responders can handle a "PRIVATE" options. 
-If present, responders MUST not cache any final answer beyond the 
-indicated time. Responders MAY cache any intermediate answer used 
-to produce the final query.
+There are two ways responders can handle a "PRIVATE" option. 
+If present, responders MUST not cache any final answer. Responders MAY
+cache any intermediate answer used to produce the final response.
 
 In cases where responders need to reduce upstream redundant queries, e.g.,
 because they are expensive or otherwise reveal more information to authoritative
-servers, there are (at least) two ways responders MAY adjust their cache 
-policy to handle private queries:
-
-1. Require responders to use per-client, segmented caches for private queries that are
-flushed when secure connections are torn down.
-2. Require responders to "ignore" cached responses and emulate fetch delays for queries
-(and responses) marked private. 
-
-The following subsections describe these in more detail.
-
-## Segmented Caches
+servers, there are (at least) responders MAY adjust their cache policy to handle 
+private queries with per-client, segmented caches. This approach works as follows:
 
 Responders that receive a query Q without the "Private" options may treat
 it as normal, i.e., by serving a response from cache if available. For a query Q
@@ -215,36 +202,6 @@ requirements for resolvers at the cost of improving client privacy.
 This approach is only viable when clients connect to resolvers over a session-based
 secure transport such as TLS or DTLS. Otherwise, malicious clients may flood
 resolvers with private queries and induce cache fragmentation.
-
-## Artificial Delays
-
-Responders that receive a query Q with "Private" options MUST do one
-of the following to satisfy Q:
-
-1. If response R is not cached, resolve Q using upstream 
-authoritative or recursive resolvers.
-2. If response R is cached, ignore R and attempt to resolve Q
-using upstream authoritative or recursive resolvers.
-3. If response R is cached, delay sending R to the requestor
-until some time T has passed. T is a random variable with distribution
-equal to the resolution distribution time of R.
-
-### Delay Distributions
-
-T measurement and distribution estimation is critical for masking the 
-timing side channel described in Section {{introduction}}. Both should
-be chosen to maximize requestor utility while minimizing responder overhead.
-We draw on observations and experiments by {{Acs17}} in deciding these factors.
-
-Responders SHOULD measure query resolution time T' and use this in selecting 
-T's distribution. There are two recommended delay strategies for responders
-assuming knowledge of T', including:
-
-1. Uniform: Delay for some time T* that is selected uniformly at random
-in the range [0, T'], i.e,. with probability distribution function Pr[T = t] = 1/T'.
-2. Geometric: Delay for some time T* that is selected according to a geometric
-distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k,
-where k is a parameter for the distribution.
 
 # DNS-over-HTTPS Application
 
@@ -281,3 +238,37 @@ TODO
 # Timing Oracle Attack Code
 
 TODO: include bash script that connects to recursive and performs correlation attack
+
+# Artificial Delays
+
+An alternative mechanism to support caching without inducing upstream
+traffic is for responders to "ignore" cached responses and emulate fetch 
+delays for queries marked private. This variation may work as follows:
+
+Responders that receive a query Q with "Private" options MUST do one
+of the following to satisfy Q:
+
+1. If response R is not cached, resolve Q using upstream 
+authoritative or recursive resolvers.
+2. If response R is cached, ignore R and attempt to resolve Q
+using upstream authoritative or recursive resolvers.
+3. If response R is cached, delay sending R to the requestor
+until some time T has passed. T is a random variable with distribution
+equal to the resolution distribution time of R.
+
+## Delay Distributions
+
+T measurement and distribution estimation is critical for masking the 
+timing side channel described in Section {{introduction}}. Both should
+be chosen to maximize requestor utility while minimizing responder overhead.
+We draw on observations and experiments by {{Acs17}} in deciding these factors.
+
+Responders SHOULD measure query resolution time T' and use this in selecting 
+T's distribution. There are two recommended delay strategies for responders
+assuming knowledge of T', including:
+
+1. Uniform: Delay for some time T* that is selected uniformly at random
+in the range [0, T'], i.e,. with probability distribution function Pr[T = t] = 1/T'.
+2. Geometric: Delay for some time T* that is selected according to a geometric
+distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k,
+where k is a parameter for the distribution.
