@@ -178,8 +178,14 @@ of this document.
 # Responder Usage and Behavior {#usage-recursive}
 
 There are two ways responders can handle a "PRIVATE" option. 
-If present, responders MUST not cache any final answer. Responders MAY
-cache any intermediate answer used to produce the final response.
+If present, responders MUST not cache any final answer for longer
+than N seconds. N is a deployment- and instance-specific variable 
+that changes based on responder load and client pool. Larger values
+of N make probing attacks more feasible. 
+
+[[OPEN ISSUE: determine if N > 0 is an acceptable trade-off]]
+
+Responders MAY cache any intermediate answer used to produce the final response.
 
 In cases where responders need to reduce upstream redundant queries, e.g.,
 because they are expensive or otherwise reveal more information to authoritative
@@ -201,13 +207,13 @@ requirements for resolvers at the cost of improving client privacy.
 
 This approach is only viable when clients connect to resolvers over a mechanism that
 provides the server with a way to uniquely identify clients in a validated way.
-For transports such as DNS-over-HTTPS {{!DOH=I-D.ietf-doh-dns-over-https}},
+For transports such as DNS-over-HTTPS (DOH) {{?I-D.ietf-doh-dns-over-https}},
 this can be the incoming IP and port pair, or a client certificate. Otherwise,
 malicious clients may flood resolvers with private queries and induce cache fragmentation.
 
 # DNS-over-HTTPS Application
 
-A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS {{!!DOH}} by
+A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS {{?I-D.ietf-doh-dns-over-https}} by
 appending a random nonce to each request. Specifically, given a random N-byte nonce
 R, the following query parameter can be appended to a DOH query:
 
@@ -221,25 +227,27 @@ SHOULD not satisfy cached queries with the same "dns" parameter yet different (o
 
 # IANA Considerations
 
-((TODO: codepoint for option type?))
+((TODO: codepoint for option type))
 
 # Security Considerations
 
-TODO: discuss client selfishness (and starvation?)
+Clients that malicious mark all queries as private may induce excessive upstream responder 
+traffic while responding said queries. However, as malicious clients may do this today by issuing
+queries for nonsensical or nonexistent domains, this does not introduce a new attack vector.
 
 # Privacy Considerations
 
-TODO
+Selectively sending a private DNS query based on user behavior leaks information about user behavior.
+For example, if clients only send private queries while in a certain system configuration, then 
+presence of a "Private" option indicates, with high probability, that the origin user's device is in
+such a configuration. This could be addressed by marking all queries as private such that system 
+configurations are indistinguishable under observation of the "Private" option. 
 
 # Acknowledgments
 
-TODO
+We thank Georgios Kontaxis for feedback on earlier versions of this document.
 
 --- back
-
-# Timing Oracle Attack Code
-
-TODO: include bash script that connects to recursive and performs correlation attack
 
 # Artificial Delays
 
