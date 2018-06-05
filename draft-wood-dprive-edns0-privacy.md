@@ -81,9 +81,9 @@ as an oracle for the network activity of other clients.
 In this document, we propose a new EDNS(0) option that allows clients to mark
 queries as privacy sensitive. We specify recursive behavior when processing
 private queries and caching their responses. Usage of this option SHOULD only
-be enabled when running over a secure transport such as TLS {{RFC7858}}, as
-otherwise recursive resolvers or other responders are subject to denial-of-service
-attacks.
+be enabled when running over a spoofing-resistant transport such as TCP, as
+recursive resolvers may choose to cache responses in per-user caches identified by
+network information such as the source port and IP.
 
 # Terminology
 
@@ -96,7 +96,7 @@ specified in {{RFC6891}}.
 
 Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents
 eavesdroppers observing queries and responses in transit. However, as this only protects the 
-data channel, other privacy attacks remain possible. In this document, we focus soley
+data channel, other privacy attacks remain possible. In this document, we focus solely
 on the cache probe attack outlined in Section {{introduction}}. We describe the attack
 in more detail here. 
 
@@ -199,13 +199,15 @@ Responders SHOULD apply whatever per-client caching policy is sensible to balanc
 amongst shared (non-private) and private caches. Segmented caches introduce more memory 
 requirements for resolvers at the cost of improving client privacy.
 
-This approach is only viable when clients connect to resolvers over a session-based
-secure transport such as TLS or DTLS. Otherwise, malicious clients may flood
-resolvers with private queries and induce cache fragmentation.
+This approach is only viable when clients connect to resolvers over a mechanism that
+provides the server with a way to uniquely identify clients in a validated way.
+For transports such as DNS-over-HTTPS {{!DOH=I-D.ietf-doh-dns-over-https}},
+this can be the incoming IP and port pair, or a client certificate. Otherwise,
+malicious clients may flood resolvers with private queries and induce cache fragmentation.
 
 # DNS-over-HTTPS Application
 
-A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS (DOH) by 
+A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS {{!!DOH}} by
 appending a random nonce to each request. Specifically, given a random N-byte nonce
 R, the following query parameter can be appended to a DOH query:
 
