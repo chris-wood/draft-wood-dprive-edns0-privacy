@@ -214,7 +214,7 @@ requirements for resolvers at the cost of improving client privacy.
 
 This approach is only viable when clients connect to resolvers over a mechanism that
 provides the server with a way to uniquely identify clients in a validated way.
-For transports such as DNS-over-HTTPS {{!DOH=I-D.ietf-doh-dns-over-https}},
+For transports such as DNS-over-HTTPS {{?I-D.ietf-doh-dns-over-https}},
 this can be the incoming IP and port pair, or a client certificate. Otherwise,
 malicious clients may flood resolvers with private queries and induce cache fragmentation.
 
@@ -250,7 +250,7 @@ where k is a parameter for the distribution.
 
 # DNS-over-HTTPS Application
 
-A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS {{!!DOH}} by
+A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS {{?I-D.ietf-doh-dns-over-https}} by
 appending a random nonce to each request. Specifically, given a random N-byte nonce
 R, the following query parameter can be appended to a DOH query:
 
