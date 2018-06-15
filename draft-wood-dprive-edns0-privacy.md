@@ -237,15 +237,16 @@ queries for nonsensical or nonexistent domains, this does not introduce a new at
 
 # Privacy Considerations
 
-Selectively sending a private DNS query based on user behavior leaks information about user behavior.
-For example, if clients only send private queries while in a certain system configuration, then 
-presence of a "Private" option indicates, with high probability, that the origin user's device is in
-such a configuration. This could be addressed by marking all queries as private such that system 
-configurations are indistinguishable under observation of the "Private" option. 
+Selectively sending a private DNS query based on user behavior leaks information about user behavior
+or system policy. For example, if clients only send private queries while in a certain system 
+configuration, then presence of a "Private" option indicates, with high probability, that the origin 
+user's device is in such a configuration. This could be addressed by marking queries as private
+-- at random or unilaterally -- such that system configurations are indistinguishable under observation 
+of the "Private" option. 
 
 # Acknowledgments
 
-We thank Georgios Kontaxis for feedback on earlier versions of this document.
+The authors thank Georgios Kontaxis for feedback on earlier versions of this document.
 
 --- back
 
