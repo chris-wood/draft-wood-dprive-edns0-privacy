@@ -1,8 +1,6 @@
 # EDNS(0) Privacy Option
 
-This is the working area for individual Internet-Drafts.
-
-## Building the Draft
+## Building the Draft 
 
 Formatted text and HTML versions of the draft can be built using `make`.
 
