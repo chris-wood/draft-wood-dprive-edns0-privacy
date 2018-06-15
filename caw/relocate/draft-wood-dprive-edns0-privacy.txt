@@ -1,0 +1,504 @@
+
+
+
+
+Network Working Group                                     O. Gudmundsson
+Internet-Draft                                               N. Sullivan
+Intended status: Informational                           Cloudflare Inc.
+Expires: December 17, 2018                                       C. Wood
+                                                              Apple Inc.
+                                                           June 15, 2018
+
+
+                         EDNS(0) Private Option
+                 draft-wood-dprive-edns0-privacy-latest
+
+Abstract
+
+   This document specifies the EDNS(0) "Private" option, which allows
+   DNS clients to signal to servers (recursive resolvers) that query
+   answers should not be cached.  This option is intended to mitigate
+   cache probing attacks on DNS query privacy.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on December 17, 2018.
+
+Copyright Notice
+
+   Copyright (c) 2018 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (https://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 1]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Cache Probe Privacy Attack  . . . . . . . . . . . . . . . . .   3
+     3.1.  Recursive Resolver Deployments  . . . . . . . . . . . . .   4
+   4.  PRIVATE Option  . . . . . . . . . . . . . . . . . . . . . . .   4
+   5.  Requestor Usage and Behavior  . . . . . . . . . . . . . . . .   5
+   6.  Responder Usage and Behavior  . . . . . . . . . . . . . . . .   5
+   7.  DNS-over-HTTPS Application  . . . . . . . . . . . . . . . . .   6
+   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   6
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .   6
+   10. Privacy Considerations  . . . . . . . . . . . . . . . . . . .   6
+   11. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .   6
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .   7
+     12.2.  Informative References . . . . . . . . . . . . . . . . .   8
+   Appendix A.  Artificial Delays  . . . . . . . . . . . . . . . . .   8
+     A.1.  Delay Distributions . . . . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+
+1.  Introduction
+
+   The Domain Name System (DNS) [RFC1035] was designed to transport all
+   messages in cleartext.  This provides no privacy, confidentiality, or
+   integrity (in the absence of DNSSEC [RFC4033]) for all client queries
+   and responses against a network adversary.  [RFC7858] standardizes
+   running DNS over (D)TLS to protect data in transit.
+
+   Even if data is protected in transit, the current caching behavior of
+   recursive DNS resolvers introduces a side channel for an active
+   network adversary to learn queries made by other clients.
+   Specifically, in response to a client's query, a recursive resolver
+   will fetch the corresponding record by traversing the DNS hierarchy
+   and cache it to more efficiently respond to the same query in the
+   future.  Returning a cached record is expected to be faster than
+   making network requests to fetch it and that timing difference is
+   observable by the client making the query.  Because the cache is
+   shared by all clients, if a client observes a fast response time for
+   a given query it can infer that some other client has already made
+   that query in the past.  Malicious clients may exploit this caching
+   behavior to use the cache as an oracle for the network activity of
+   other clients.
+
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 2]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+   In this document, we propose a new EDNS(0) option that allows clients
+   to mark queries as privacy sensitive.  We specify recursive behavior
+   when processing private queries and caching their responses.  Usage
+   of this option SHOULD only be enabled when running over a spoofing-
+   resistant transport such as TCP, as recursive resolvers may choose to
+   cache responses in per-user caches identified by network information
+   such as the source port and IP.
+
+2.  Terminology
+
+   The terms "Requestor" and "Responder" are to be interpreted as
+   specified in [RFC6891].
+
+   o  Private query: A query carrying the PRIVATE EDNS(0) option.
+
+3.  Cache Probe Privacy Attack
+
+   Securing DNS traffic in transit via DNS-over-TLS has many benefits.
+   Minimally, it prevents eavesdroppers observing queries and responses
+   in transit.  However, as this only protects the data channel, other
+   privacy attacks remain possible.  In this document, we focus solely
+   on the cache probe attack outlined in Section Section 1.  We describe
+   the attack in more detail here.
+
+   Let S be a benign client (requestor) using recursive resolver
+   (responder) R.  In answering S's queries, R speaks to several
+   authoritative servers A1,...,An.  Let RTT(requestor, responder) be a
+   function that computes the average RTT for a given query and response
+   between requestor and responder.  For example, RTT(R,A1) is the
+   average RTT for answering a query sent by R and answered by A1.  Let
+   Delay(q, r) be a function that measures the delay in answering
+   request q with response r.  Finally, let Adv be a malicious client
+   who wishes to learn what queries were asked by S.  Adv proceeds as
+   follows.  Assume Adv wants to learn if S queried for q = example.com.
+   To do so, Adv requests q from R, yielding response r, and measures d
+   = delay(q, r).  Then, Adv sends a random query q' in the same top-
+   level domain (e.g., .com), yielding response r', that S is unlikely
+   to have requested, and measures d' = delay(q', r').  If |d - d'| ~ 0,
+   then Adv concludes q was not requested by S (or someone else).
+   Otherwise, Adv concludes that, with some probability q was requested.
+
+   Severity of this attack depends on several factors:
+
+   o  How many clients (stubs) are served by R.
+
+   o  What types of queries are requested by other clients of R.  For
+      example, do they require more recursive resolution steps to
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 3]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+      resolve?  If so, this may inflate time required to answer the
+      query.
+
+   While learning the existence of a certain query may not always
+   constitute a privacy violation, it may for some clients.
+
+3.1.  Recursive Resolver Deployments
+
+   Large-scale recursive resolvers, such as those operated by Quad9,
+   Cloudflare, and Google, traditionally deploy several servers behind
+   well known anycast IP addresses, such as 8.8.8.8 or 9.9.9.9.  Thus,
+   stub queries to such well known resolvers may not be serviced by the
+   same logical recursive resolver.  UDP queries and TCP connections may
+   be routed to different resolvers based on distance and connection
+   cost.  This increases the difficulty of cache probing attacks.
+   Recursive resolvers that are not deployed at such large scales are
+   more susceptible to this type of attack.
+
+4.  PRIVATE Option
+
+   EDNS(0) [RFC6891] specifies a mechanism to include new options in DNS
+   messages.  This document specifies a new "PRIVATE" option that allows
+   clients to express the maximum desired cache lifetime for DNS query
+   answers.
+
+   0                       8                      16
+   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+   |                  OPTION-CODE                  |
+   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+   |                 OPTION-LENGTH                 |
+   +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+   |    PRIVATE Option     |
+   +--+--+--+--+--+--+--+--+
+
+   The OPTION-CODE for the "PRIVATE" option is TBD.
+
+   The OPTION-LENGTH for the "PRIVATE" option is one octet.
+
+   The PRIVATE octet MUST be set to 0x01.  Presence of this option
+   indicates that a query is private.  Other values MUST NOT be used.
+   Responders, such as recursive resolvers, MUST drop the query if
+   another value is set, as discussed in Section Section 6.
+
+   This option does not affect intermediate queries performed to produce
+   an answer to a query.  Responders MUST only honor it for the final
+   answer.  For example, when answering a query for a.b.c.d.example.com,
+   only the final answer for a.b.c.d.example.com is affected.  All
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 4]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+   intermediate queries, e.g., for .com, .example.com, etc., MAY be
+   cached as needed.
+
+5.  Requestor Usage and Behavior
+
+   Requestors MAY include a "PRIVATE" option for any query deemed
+   private or sensitive.  This may include queries for explicitly known-
+   to-be private domains or for all domains when operating in a
+   "private" mode.  Specific recommendations for when to include this
+   option are outside the scope of this document.
+
+6.  Responder Usage and Behavior
+
+   There are two ways responders can handle a "PRIVATE" option.  If
+   present, responders MUST not cache any final answer for longer than N
+   seconds.  N is a deployment- and instance-specific variable that
+   changes based on responder load and client pool.  Larger values of N
+   make probing attacks more feasible.
+
+   [[OPEN ISSUE: determine if N > 0 is an acceptable trade-off]]
+
+   Responders MAY cache any intermediate answer used to produce the
+   final response.
+
+   In cases where responders need to reduce upstream redundant queries,
+   e.g., because they are expensive or otherwise reveal more information
+   to authoritative servers, there are (at least) responders MAY adjust
+   their cache policy to handle private queries with per-client,
+   segmented caches.  This approach works as follows:
+
+   Responders that receive a query Q without the "Private" options may
+   treat it as normal, i.e., by serving a response from cache if
+   available.  For a query Q with a "Private" option sent from client S,
+   responders MUST do the following:
+
+   o  Index S's private cache using Q, if it exists.  If response R is
+      present, serve it to S.
+
+   o  If S's private cache does not exist, attempt to resolve Q as
+      normal.  Cache the response in S's private cache.
+
+   When S's connection to R is torn down, S's private cache MUST be
+   flushed and memory released.  Responders SHOULD apply whatever per-
+   client caching policy is sensible to balance utility amongst shared
+   (non-private) and private caches.  Segmented caches introduce more
+   memory requirements for resolvers at the cost of improving client
+   privacy.
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 5]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+   This approach is only viable when clients connect to resolvers over a
+   mechanism that provides the server with a way to uniquely identify
+   clients in a validated way.  For transports such as DNS-over-HTTPS
+   (DOH) [I-D.ietf-doh-dns-over-https], this can be the incoming IP and
+   port pair, or a client certificate.  Otherwise, malicious clients may
+   flood resolvers with private queries and induce cache fragmentation.
+
+7.  DNS-over-HTTPS Application
+
+   A similar per-query "no-cache" flag may be implemented with DNS-over-
+   HTTPS [I-D.ietf-doh-dns-over-https] by appending a random nonce to
+   each request.  Specifically, given a random N-byte nonce R, the
+   following query parameter can be appended to a DOH query:
+
+   ?rand=R
+
+   DOH recursive resolvers that use an HTTP caching layer to satisfy
+   duplicate queries SHOULD not satisfy cached queries with the same
+   "dns" parameter yet different (or no) "rand" parameter.
+
+8.  IANA Considerations
+
+   ((TODO: codepoint for option type))
+
+9.  Security Considerations
+
+   Clients that malicious mark all queries as private may induce
+   excessive upstream responder traffic while responding said queries.
+   However, as malicious clients may do this today by issuing queries
+   for nonsensical or nonexistent domains, this does not introduce a new
+   attack vector.
+
+10.  Privacy Considerations
+
+   Selectively sending a private DNS query based on user behavior leaks
+   information about user behavior or system policy.  For example, if
+   clients only send private queries while in a certain system
+   configuration, then presence of a "Private" option indicates, with
+   high probability, that the origin user's device is in such a
+   configuration.  This could be addressed by marking queries as private
+   - at random or unilaterally - such that system configurations are
+   indistinguishable under observation of the "Private" option.
+
+11.  Acknowledgments
+
+   The authors thank Georgios Kontaxis for feedback on earlier versions
+   of this document.
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 6]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+12.  References
+
+12.1.  Normative References
+
+   [Acs17]    "Privacy-Aware Caching in Information-Centric Networking",
+              n.d., <http://ieeexplore.ieee.org/document/7874168/>.
+
+   [I-D.ietf-dprive-padding-policy]
+              Mayrhofer, A., "Padding Policy for EDNS(0)", draft-ietf-
+              dprive-padding-policy-04 (work in progress), February
+              2018.
+
+   [I-D.ietf-tls-tls13]
+              Rescorla, E., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", draft-ietf-tls-tls13-28 (work in progress),
+              March 2018.
+
+   [RFC1035]  Mockapetris, P., "Domain names - implementation and
+              specification", STD 13, RFC 1035, DOI 10.17487/RFC1035,
+              November 1987, <https://www.rfc-editor.org/info/rfc1035>.
+
+   [RFC2104]  Krawczyk, H., Bellare, M., and R. Canetti, "HMAC: Keyed-
+              Hashing for Message Authentication", RFC 2104,
+              DOI 10.17487/RFC2104, February 1997,
+              <https://www.rfc-editor.org/info/rfc2104>.
+
+   [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
+              Rose, "DNS Security Introduction and Requirements",
+              RFC 4033, DOI 10.17487/RFC4033, March 2005,
+              <https://www.rfc-editor.org/info/rfc4033>.
+
+   [RFC5077]  Salowey, J., Zhou, H., Eronen, P., and H. Tschofenig,
+              "Transport Layer Security (TLS) Session Resumption without
+              Server-Side State", RFC 5077, DOI 10.17487/RFC5077,
+              January 2008, <https://www.rfc-editor.org/info/rfc5077>.
+
+   [RFC6891]  Damas, J., Graff, M., and P. Vixie, "Extension Mechanisms
+              for DNS (EDNS(0))", STD 75, RFC 6891,
+              DOI 10.17487/RFC6891, April 2013,
+              <https://www.rfc-editor.org/info/rfc6891>.
+
+   [RFC7830]  Mayrhofer, A., "The EDNS(0) Padding Option", RFC 7830,
+              DOI 10.17487/RFC7830, May 2016,
+              <https://www.rfc-editor.org/info/rfc7830>.
+
+
+
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 7]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+   [RFC7858]  Hu, Z., Zhu, L., Heidemann, J., Mankin, A., Wessels, D.,
+              and P. Hoffman, "Specification for DNS over Transport
+              Layer Security (TLS)", RFC 7858, DOI 10.17487/RFC7858, May
+              2016, <https://www.rfc-editor.org/info/rfc7858>.
+
+12.2.  Informative References
+
+   [I-D.ietf-doh-dns-over-https]
+              Hoffman, P. and P. McManus, "DNS Queries over HTTPS
+              (DOH)", draft-ietf-doh-dns-over-https-10 (work in
+              progress), June 2018.
+
+Appendix A.  Artificial Delays
+
+   An alternative mechanism to support caching without inducing upstream
+   traffic is for responders to "ignore" cached responses and emulate
+   fetch delays for queries marked private.  This variation may work as
+   follows:
+
+   Responders that receive a query Q with "Private" options MUST do one
+   of the following to satisfy Q:
+
+   1.  If response R is not cached, resolve Q using upstream
+       authoritative or recursive resolvers.
+
+   2.  If response R is cached, ignore R and attempt to resolve Q using
+       upstream authoritative or recursive resolvers.
+
+   3.  If response R is cached, delay sending R to the requestor until
+       some time T has passed.  T is a random variable with distribution
+       equal to the resolution distribution time of R.
+
+A.1.  Delay Distributions
+
+   T measurement and distribution estimation is critical for masking the
+   timing side channel described in Section Section 1.  Both should be
+   chosen to maximize requestor utility while minimizing responder
+   overhead.  We draw on observations and experiments by [Acs17] in
+   deciding these factors.
+
+   Responders SHOULD measure query resolution time T' and use this in
+   selecting T's distribution.  There are two recommended delay
+   strategies for responders assuming knowledge of T', including:
+
+   1.  Uniform: Delay for some time T* that is selected uniformly at
+       random in the range [0, T'], i.e,. with probability distribution
+       function Pr[T = t] = 1/T'.
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 8]
+
+Internet-Draft           EDNS(0) Private Option                June 2018
+
+
+   2.  Geometric: Delay for some time T* that is selected according to a
+       geometric distribution, i.e., with probability distribution
+       function Pr[T = t] = (1 - t) * t^k, where k is a parameter for
+       the distribution.
+
+Authors' Addresses
+
+   Olafur Gudmundsson
+   Cloudflare Inc.
+
+   Email: olafur+ietf@cloudflare.com
+
+
+   Nick Sullivan
+   Cloudflare Inc.
+
+   Email: nick@cloudflare.com
+
+
+   Christopher A. Wood
+   Apple Inc.
+   1 Infinite Loop
+   Cupertino, California 95014
+   United States of America
+
+   Email: cawood@apple.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gudmundsson, et al.     Expires December 17, 2018               [Page 9]
