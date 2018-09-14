@@ -47,10 +47,13 @@ normative:
 
 --- abstract
 
-This document specifies the EDNS(0) "Private" option, which allows
-DNS clients to signal to servers (recursive resolvers) that query
-answers should not be cached. This option is intended to mitigate
-cache probing attacks on DNS query privacy.
+This document specifics EDNS(0) "Cache Control" option which allows
+DNS clients and servers (recursive resolvers) to signal each other the
+desired caching behavior of the current request and/or
+response. Specifically, it allows signals that query answers should
+not be globally cached or that some queries should not be served from
+cache at all.
+
 
 --- middle
 
@@ -61,7 +64,7 @@ in cleartext. This provides no privacy, confidentiality, or integrity
 (in the absence of DNSSEC {{RFC4033}}) for all client queries and responses
 against a network adversary.
 {{RFC7858}} standardizes running DNS over (D)TLS to protect
-data in transit.
+data in transit. TODO DOH reference.
 
 Even if data is protected in transit, the current caching behavior of
 recursive DNS resolvers introduces a side channel for an active network
@@ -78,23 +81,22 @@ already made that query in the past.
 Malicious clients may exploit this caching behavior to use the cache
 as an oracle for the network activity of other clients.
 
-In this document, we propose a new EDNS(0) option that allows clients to mark
-queries as privacy sensitive. We specify recursive behavior when processing
-private queries and caching their responses. Usage of this option SHOULD only
-be enabled when running over a spoofing-resistant transport such as TCP, as
-recursive resolvers may choose to cache responses in per-user caches identified by
-network information such as the source port and IP.
+In this document, we propose a new EDNS(0) option that allows clients
+to control caching for improved privacy behavior. We specify recursive
+behavior when processing private queries and caching their
+responses. Usage of this option SHOULD only be enabled when running
+over a spoofing-resistant transport such as TCP, as recursive
+resolvers may choose to cache responses in per-user caches identified
+by network information such as the source port and IP.
 
 # Terminology
 
 The terms "Requestor" and "Responder" are to be interpreted as
 specified in {{RFC6891}}.
 
-- Private query: A query carrying the PRIVATE EDNS(0) option.
-
 # Cache Probe Privacy Attack {#attacks}
 
-Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents
+Securing DNS traffic in transit has many benefits. Minimally, it prevents
 eavesdroppers observing queries and responses in transit. However, as this only protects the 
 data channel, other privacy attacks remain possible. In this document, we focus solely
 on the cache probe attack outlined in Section {{introduction}}. We describe the attack
@@ -134,11 +136,19 @@ may be routed to different resolvers based on distance and connection cost.
 This increases the difficulty of cache probing attacks. Recursive resolvers that are not
 deployed at such large scales are more susceptible to this type of attack.
 
-# PRIVATE Option
+# Per-User Cache {#perusercache}
+
+A Per-User cache is an independent local DNS cache keyed to a user specific
+session. For transports that use TLS this can be a client certificate,
+or for DNS-over-HTTPS (DoH) {{?I-D.ietf-doh-dns-over-https}},
+this can be an HTTP based session mechanism. Per-User caches may be
+aggressively expired prematurely to prevent fragmentation.
+
+# CACHE-CONTROL Option
 
 EDNS(0) {{RFC6891}} specifies a mechanism to include new options in DNS messages.
-This document specifies a new "PRIVATE" option that allows clients to express
-the maximum desired cache lifetime for DNS query answers. 
+This document specifies a new "CACHE-CONTROL" option for both requests
+and responses.
 
 ~~~
 0                       8                      16
@@ -147,83 +157,47 @@ the maximum desired cache lifetime for DNS query answers.
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |                 OPTION-LENGTH                 |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|    PRIVATE Option     |
+|    CACHE-CONTROL Flags     |
 +--+--+--+--+--+--+--+--+
 ~~~
 
-The OPTION-CODE for the "PRIVATE" option is TBD.
+The OPTION-CODE for the "CACHE-CONTROL" option is TBD.
 
-The OPTION-LENGTH for the "PRIVATE" option is one octet.
+The OPTION-LENGTH for the "CACHE-CONTROL" option is one or more
+octets.
 
-The PRIVATE octet MUST be set to 0x01. Presence of this
-option indicates that a query is private. Other values MUST
-NOT be used. Responders, such as recursive resolvers, MUST drop 
-the query if another value is set, as discussed in Section {{usage-recursive}}.
+The CACHE-CONTROL flags are a bitwise OR of the following
+attributes of the first byte. Unused bits MUST be set to zero.
 
-This option does not affect intermediate queries performed
-to produce an answer to a query. Responders MUST only 
-honor it for the final answer. For example, when answering a
-query for a.b.c.d.example.com, only the final answer for
-a.b.c.d.example.com is affected. All intermediate queries, 
-e.g., for .com, .example.com, etc., MAY be cached as needed.
+The NO-CACHE attribute (0x80). When present on a request this attribute
+indicates the response information MUST NOT be retreived from a
+cache. However, the response MAY be stored in a cache and reused for a
+subsequent query that does not contain this attribute. When present on
+a response this attribute is equivalent to the NO-STORE attribute.
 
-# Requestor Usage and Behavior {#usage-stub}
+The NO-STORE attribute (0x40). When present, on either a request or a
+response, this attribute indicates that if the response is not retrieved
+from a local cache then it MUST NOT be stored in a local cache. All
+responses to a query with the NO-STORE attribute MUST also include
+the NO-STORE attribute.
 
-Requestors MAY include a "PRIVATE" option for any query deemed private or 
-sensitive. This may include queries for explicitly known-to-be private 
-domains or for all domains when operating in a "private" mode. Specific
-recommendations for when to include this option are outside the scope
-of this document. 
+The SHORT-STORE attribute (0x20). When present on either a request or
+a response, this attribute indicates that if the response is not
+retrieved from a local cache then it MUST NOT be stored in a local
+cache for more than 60 (TODO) seconds. All responses to a query with
+the SHORT-STORE attribute MUST also include the SHORT-STORE attribute.
 
-# Responder Usage and Behavior {#usage-recursive}
+The PRIVATE attribute (0x10). When present, on either a request or a
+response, this attribute indicates that the response MUST only stored
+to or retrieved from a Per-User local cache {{perusercache}}. If there is not a
+Per-User local cache available the request and response MUST both be
+handled as if both the NO-CACHE and NO-STORE attributes were
+present. All responses to a query with the PRIVATE attribute MUST also
+include the PRIVATE attribute.
 
-There are two ways responders can handle a "PRIVATE" option. 
-If present, responders MUST not cache any final answer for longer
-than N seconds. N is a deployment- and instance-specific variable 
-that changes based on responder load and client pool. Larger values
-of N make probing attacks more feasible. 
-
-[[OPEN ISSUE: determine if N > 0 is an acceptable trade-off]]
-
-Responders MAY cache any intermediate answer used to produce the final response.
-
-In cases where responders need to reduce upstream redundant queries, e.g.,
-because they are expensive or otherwise reveal more information to authoritative
-servers, there are (at least) responders MAY adjust their cache policy to handle 
-private queries with per-client, segmented caches. This approach works as follows:
-
-Responders that receive a query Q without the "Private" options may treat
-it as normal, i.e., by serving a response from cache if available. For a query Q
-with a "Private" option sent from client S, responders MUST do the following:
-
-- Index S's private cache using Q, if it exists. If response R is present, serve it to S.
-- If S's private cache does not exist, attempt to resolve Q as normal. Cache the response
-in S's private cache. 
-
-When S's connection to R is torn down, S's private cache MUST be flushed and memory released.
-Responders SHOULD apply whatever per-client caching policy is sensible to balance utility
-amongst shared (non-private) and private caches. Segmented caches introduce more memory 
-requirements for resolvers at the cost of improving client privacy.
-
-This approach is only viable when clients connect to resolvers over a mechanism that
-provides the server with a way to uniquely identify clients in a validated way.
-For transports such as DNS-over-HTTPS (DOH) {{?I-D.ietf-doh-dns-over-https}},
-this can be the incoming IP and port pair, or a client certificate. Otherwise,
-malicious clients may flood resolvers with private queries and induce cache fragmentation.
-
-# DNS-over-HTTPS Application
-
-A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS {{?I-D.ietf-doh-dns-over-https}} by
-appending a random nonce to each request. Specifically, given a random N-byte nonce
-R, the following query parameter can be appended to a DOH query:
-
-~~~
-?rand=R
-~~~
-
-DOH recursive resolvers that use an HTTP caching layer to satisfy duplicate queries
-SHOULD not satisfy cached queries with the same "dns" parameter yet different (or no)
-"rand" parameter.
+Queries generated to answer a query, including both intermediate and
+terminal requests, MUST contain at least the attributes of the
+original query.
 
 # IANA Considerations
 
