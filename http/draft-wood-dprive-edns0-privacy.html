@@ -26,7 +26,7 @@ body {
   font-weight: bold;
   color: #333;
   line-height: 100%;
-  margin: 0.8em 0 0.3em;
+  margin: 1.2em 0 0.3em;
 }
 .title, #rfc\.title h1 { font-size: 32px; }
 h1, section h1, h2, section h2, section h3, nav h2 { font-size: 20px; }
@@ -165,12 +165,17 @@ a[href]:hover {
   background-color: #eee;
 }
 
-ol, ul, li, p {
+p, ol, ul, li {
   padding: 0;
-  margin: 0.5em 0 0.5em 2em;
 }
-li, p {
-  margin-left: 0;
+p {
+  margin: 0.5em 0;
+}
+ol, ul {
+  margin: 0.2em 0 0.2em 2em;
+}
+li {
+  margin: 0.2em 0;
 }
 address {
   font-style: normal;
@@ -280,30 +285,28 @@ ul.toc li {
 <link href="#rfc.section.2" rel="Chapter" title="2 Terminology">
 <link href="#rfc.section.3" rel="Chapter" title="3 Cache Probe Privacy Attack">
 <link href="#rfc.section.3.1" rel="Chapter" title="3.1 Recursive Resolver Deployments">
-<link href="#rfc.section.4" rel="Chapter" title="4 PRIVATE Option">
-<link href="#rfc.section.5" rel="Chapter" title="5 Requestor Usage and Behavior">
-<link href="#rfc.section.6" rel="Chapter" title="6 Responder Usage and Behavior">
-<link href="#rfc.section.7" rel="Chapter" title="7 DNS-over-HTTPS Application">
-<link href="#rfc.section.8" rel="Chapter" title="8 IANA Considerations">
-<link href="#rfc.section.9" rel="Chapter" title="9 Security Considerations">
-<link href="#rfc.section.10" rel="Chapter" title="10 Privacy Considerations">
-<link href="#rfc.section.11" rel="Chapter" title="11 Acknowledgments">
-<link href="#rfc.references" rel="Chapter" title="12 References">
-<link href="#rfc.references.1" rel="Chapter" title="12.1 Normative References">
-<link href="#rfc.references.2" rel="Chapter" title="12.2 Informative References">
+<link href="#rfc.section.4" rel="Chapter" title="4 Per-User Cache">
+<link href="#rfc.section.5" rel="Chapter" title="5 CACHE-CONTROL Option">
+<link href="#rfc.section.6" rel="Chapter" title="6 IANA Considerations">
+<link href="#rfc.section.7" rel="Chapter" title="7 Security Considerations">
+<link href="#rfc.section.8" rel="Chapter" title="8 Privacy Considerations">
+<link href="#rfc.section.9" rel="Chapter" title="9 Acknowledgments">
+<link href="#rfc.references" rel="Chapter" title="10 References">
+<link href="#rfc.references.1" rel="Chapter" title="10.1 Normative References">
+<link href="#rfc.references.2" rel="Chapter" title="10.2 Informative References">
 <link href="#rfc.appendix.A" rel="Chapter" title="A Artificial Delays">
 <link href="#rfc.appendix.A.1" rel="Chapter" title="A.1 Delay Distributions">
 <link href="#rfc.authors" rel="Chapter">
 
 
-  <meta name="generator" content="xml2rfc version 2.9.6 - https://tools.ietf.org/tools/xml2rfc" />
+  <meta name="generator" content="xml2rfc version 2.9.9 - https://tools.ietf.org/tools/xml2rfc" />
   <link rel="schema.dct" href="http://purl.org/dc/terms/" />
 
   <meta name="dct.creator" content="Gudmundsson, O., Sullivan, N., and C. Wood" />
   <meta name="dct.identifier" content="urn:ietf:id:draft-wood-dprive-edns0-privacy-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2018-06-15" />
-  <meta name="dct.abstract" content="This document specifies the EDNS(0) &#8220;Private&#8221; option, which allows DNS clients to signal to servers (recursive resolvers) that query answers should not be cached. This option is intended to mitigate cache probing attacks on DNS query privacy." />
-  <meta name="description" content="This document specifies the EDNS(0) &#8220;Private&#8221; option, which allows DNS clients to signal to servers (recursive resolvers) that query answers should not be cached. This option is intended to mitigate cache probing attacks on DNS query privacy." />
+  <meta name="dct.issued" scheme="ISO8601" content="2018-09-14" />
+  <meta name="dct.abstract" content="This document specifics EDNS(0) &#8220;Cache Control&#8221; option which allows DNS clients and servers (recursive resolvers) to signal each other the desired caching behavior of the current request and/or response. Specifically, it allows signals that query answers should not be globally cached or that some queries should not be served from cache at all." />
+  <meta name="description" content="This document specifics EDNS(0) &#8220;Cache Control&#8221; option which allows DNS clients and servers (recursive resolvers) to signal each other the desired caching behavior of the current request and/or response. Specifically, it allows signals that query answers should not be globally cached or that some queries should not be served from cache at all." />
 
 </head>
 
@@ -325,7 +328,7 @@ ul.toc li {
 <td class="right">Cloudflare Inc.</td>
 </tr>
 <tr>
-<td class="left">Expires: December 17, 2018</td>
+<td class="left">Expires: March 18, 2019</td>
 <td class="right">C. Wood</td>
 </tr>
 <tr>
@@ -334,7 +337,7 @@ ul.toc li {
 </tr>
 <tr>
 <td class="left"></td>
-<td class="right">June 15, 2018</td>
+<td class="right">September 14, 2018</td>
 </tr>
 
     	
@@ -345,12 +348,12 @@ ul.toc li {
   <span class="filename">draft-wood-dprive-edns0-privacy-latest</span></p>
   
   <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
-<p>This document specifies the EDNS(0) &#8220;Private&#8221; option, which allows DNS clients to signal to servers (recursive resolvers) that query answers should not be cached. This option is intended to mitigate cache probing attacks on DNS query privacy.</p>
+<p>This document specifics EDNS(0) &#8220;Cache Control&#8221; option which allows DNS clients and servers (recursive resolvers) to signal each other the desired caching behavior of the current request and/or response. Specifically, it allows signals that query answers should not be globally cached or that some queries should not be served from cache at all.</p>
 <h1 id="rfc.status"><a href="#rfc.status">Status of This Memo</a></h1>
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on December 17, 2018.</p>
+<p>This Internet-Draft will expire on March 18, 2019.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2018 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -368,27 +371,23 @@ ul.toc li {
 </li>
 <ul><li>3.1.   <a href="#rfc.section.3.1">Recursive Resolver Deployments</a>
 </li>
-</ul><li>4.   <a href="#rfc.section.4">PRIVATE Option</a>
+</ul><li>4.   <a href="#rfc.section.4">Per-User Cache</a>
 </li>
-<li>5.   <a href="#rfc.section.5">Requestor Usage and Behavior</a>
+<li>5.   <a href="#rfc.section.5">CACHE-CONTROL Option</a>
 </li>
-<li>6.   <a href="#rfc.section.6">Responder Usage and Behavior</a>
+<li>6.   <a href="#rfc.section.6">IANA Considerations</a>
 </li>
-<li>7.   <a href="#rfc.section.7">DNS-over-HTTPS Application</a>
+<li>7.   <a href="#rfc.section.7">Security Considerations</a>
 </li>
-<li>8.   <a href="#rfc.section.8">IANA Considerations</a>
+<li>8.   <a href="#rfc.section.8">Privacy Considerations</a>
 </li>
-<li>9.   <a href="#rfc.section.9">Security Considerations</a>
+<li>9.   <a href="#rfc.section.9">Acknowledgments</a>
 </li>
-<li>10.   <a href="#rfc.section.10">Privacy Considerations</a>
+<li>10.   <a href="#rfc.references">References</a>
 </li>
-<li>11.   <a href="#rfc.section.11">Acknowledgments</a>
+<ul><li>10.1.   <a href="#rfc.references.1">Normative References</a>
 </li>
-<li>12.   <a href="#rfc.references">References</a>
-</li>
-<ul><li>12.1.   <a href="#rfc.references.1">Normative References</a>
-</li>
-<li>12.2.   <a href="#rfc.references.2">Informative References</a>
+<li>10.2.   <a href="#rfc.references.2">Informative References</a>
 </li>
 </ul><li>Appendix A.   <a href="#rfc.appendix.A">Artificial Delays</a>
 </li>
@@ -403,20 +402,17 @@ ul.toc li {
   <h1 id="rfc.section.1">
 <a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a>
 </h1>
-<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035" class="xref">[RFC1035]</a> was designed to transport all messages in cleartext. This provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033" class="xref">[RFC4033]</a>) for all client queries and responses against a network adversary.  <a href="#RFC7858" class="xref">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit.</p>
+<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035" class="xref">[RFC1035]</a> was designed to transport all messages in cleartext. This provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033" class="xref">[RFC4033]</a>) for all client queries and responses against a network adversary.  <a href="#RFC7858" class="xref">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit. TODO DOH reference.</p>
 <p id="rfc.section.1.p.2">Even if data is protected in transit, the current caching behavior of recursive DNS resolvers introduces a side channel for an active network adversary to learn queries made by other clients.  Specifically, in response to a client&#8217;s query, a recursive resolver will fetch the corresponding record by traversing the DNS hierarchy and cache it to more efficiently respond to the same query in the future.  Returning a cached record is expected to be faster than making network requests to fetch it and that timing difference is observable by the client making the query.  Because the cache is shared by all clients, if a client observes a fast response time for a given query it can infer that some other client has already made that query in the past.  Malicious clients may exploit this caching behavior to use the cache as an oracle for the network activity of other clients.</p>
-<p id="rfc.section.1.p.3">In this document, we propose a new EDNS(0) option that allows clients to mark queries as privacy sensitive. We specify recursive behavior when processing private queries and caching their responses. Usage of this option SHOULD only be enabled when running over a spoofing-resistant transport such as TCP, as recursive resolvers may choose to cache responses in per-user caches identified by network information such as the source port and IP.</p>
+<p id="rfc.section.1.p.3">In this document, we propose a new EDNS(0) option that allows clients to control caching for improved privacy behavior. We specify recursive behavior when processing private queries and caching their responses. Usage of this option SHOULD only be enabled when running over a spoofing-resistant transport such as TCP, as recursive resolvers may choose to cache responses in per-user caches identified by network information such as the source port and IP.</p>
 <h1 id="rfc.section.2">
 <a href="#rfc.section.2">2.</a> <a href="#terminology" id="terminology">Terminology</a>
 </h1>
 <p id="rfc.section.2.p.1">The terms &#8220;Requestor&#8221; and &#8220;Responder&#8221; are to be interpreted as specified in <a href="#RFC6891" class="xref">[RFC6891]</a>.</p>
-<p></p>
-
-<ul><li>Private query: A query carrying the PRIVATE EDNS(0) option.</li></ul>
 <h1 id="rfc.section.3">
 <a href="#rfc.section.3">3.</a> <a href="#attacks" id="attacks">Cache Probe Privacy Attack</a>
 </h1>
-<p id="rfc.section.3.p.1">Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents eavesdroppers observing queries and responses in transit. However, as this only protects the data channel, other privacy attacks remain possible. In this document, we focus solely on the cache probe attack outlined in Section <a href="#introduction" class="xref">Section 1</a>. We describe the attack in more detail here.</p>
+<p id="rfc.section.3.p.1">Securing DNS traffic in transit has many benefits. Minimally, it prevents eavesdroppers observing queries and responses in transit. However, as this only protects the data channel, other privacy attacks remain possible. In this document, we focus solely on the cache probe attack outlined in Section <a href="#introduction" class="xref">Section 1</a>. We describe the attack in more detail here.</p>
 <p id="rfc.section.3.p.2">Let S be a benign client (requestor) using recursive resolver (responder) R.  In answering S&#8217;s queries, R speaks to several authoritative servers A1,&#8230;,An.  Let RTT(requestor, responder) be a function that computes the average RTT for a given query and response between requestor and responder. For example, RTT(R,A1) is the average RTT for answering a query sent by R and answered by A1. Let Delay(q, r) be a function that measures the delay in answering request q with response r.  Finally, let Adv be a malicious client who wishes to learn what queries were asked by S.  Adv proceeds as follows. Assume Adv wants to learn if S queried for q = example.com.  To do so, Adv requests q from R, yielding response r, and measures d = delay(q, r). Then, Adv sends a random query q&#8217; in the same top-level domain (e.g., .com), yielding response r&#8217;, that S is unlikely to have requested, and measures d&#8217; = delay(q&#8217;, r&#8217;).  If |d - d&#8217;| ~ 0, then Adv concludes q was not requested by S (or someone else). Otherwise, Adv concludes that, with some probability q was requested.</p>
 <p id="rfc.section.3.p.3">Severity of this attack depends on several factors:</p>
 <p></p>
@@ -431,9 +427,13 @@ ul.toc li {
 </h1>
 <p id="rfc.section.3.1.p.1">Large-scale recursive resolvers, such as those operated by Quad9, Cloudflare, and Google, traditionally deploy several servers behind well known anycast IP addresses, such as 8.8.8.8 or 9.9.9.9. Thus, stub queries to such well known resolvers may not be serviced by the same logical recursive resolver. UDP queries and TCP connections may be routed to different resolvers based on distance and connection cost.  This increases the difficulty of cache probing attacks. Recursive resolvers that are not deployed at such large scales are more susceptible to this type of attack.</p>
 <h1 id="rfc.section.4">
-<a href="#rfc.section.4">4.</a> <a href="#private-option" id="private-option">PRIVATE Option</a>
+<a href="#rfc.section.4">4.</a> <a href="#perusercache" id="perusercache">Per-User Cache</a>
 </h1>
-<p id="rfc.section.4.p.1">EDNS(0) <a href="#RFC6891" class="xref">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;PRIVATE&#8221; option that allows clients to express the maximum desired cache lifetime for DNS query answers.</p>
+<p id="rfc.section.4.p.1">A Per-User cache is an independent local DNS cache keyed to a user specific session. For transports that use TLS this can be a client certificate, or for DNS-over-HTTPS (DoH) <a href="#I-D.ietf-doh-dns-over-https" class="xref">[I-D.ietf-doh-dns-over-https]</a>, this can be an HTTP based session mechanism. Per-User caches may be aggressively expired prematurely to prevent fragmentation.</p>
+<h1 id="rfc.section.5">
+<a href="#rfc.section.5">5.</a> <a href="#cache-control-option" id="cache-control-option">CACHE-CONTROL Option</a>
+</h1>
+<p id="rfc.section.5.p.1">EDNS(0) <a href="#RFC6891" class="xref">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;CACHE-CONTROL&#8221; option for both requests and responses.</p>
 <pre>
 0                       8                      16
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -441,61 +441,37 @@ ul.toc li {
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |                 OPTION-LENGTH                 |
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-|    PRIVATE Option     |
+|    CACHE-CONTROL Flags     |
 +--+--+--+--+--+--+--+--+
 </pre>
-<p id="rfc.section.4.p.2">The OPTION-CODE for the &#8220;PRIVATE&#8221; option is TBD.</p>
-<p id="rfc.section.4.p.3">The OPTION-LENGTH for the &#8220;PRIVATE&#8221; option is one octet.</p>
-<p id="rfc.section.4.p.4">The PRIVATE octet MUST be set to 0x01. Presence of this option indicates that a query is private. Other values MUST NOT be used. Responders, such as recursive resolvers, MUST drop the query if another value is set, as discussed in Section <a href="#usage-recursive" class="xref">Section 6</a>.</p>
-<p id="rfc.section.4.p.5">This option does not affect intermediate queries performed to produce an answer to a query. Responders MUST only honor it for the final answer. For example, when answering a query for a.b.c.d.example.com, only the final answer for a.b.c.d.example.com is affected. All intermediate queries, e.g., for .com, .example.com, etc., MAY be cached as needed.</p>
-<h1 id="rfc.section.5">
-<a href="#rfc.section.5">5.</a> <a href="#usage-stub" id="usage-stub">Requestor Usage and Behavior</a>
-</h1>
-<p id="rfc.section.5.p.1">Requestors MAY include a &#8220;PRIVATE&#8221; option for any query deemed private or sensitive. This may include queries for explicitly known-to-be private domains or for all domains when operating in a &#8220;private&#8221; mode. Specific recommendations for when to include this option are outside the scope of this document.</p>
+<p id="rfc.section.5.p.2">The OPTION-CODE for the &#8220;CACHE-CONTROL&#8221; option is TBD.</p>
+<p id="rfc.section.5.p.3">The OPTION-LENGTH for the &#8220;CACHE-CONTROL&#8221; option is one or more octets.</p>
+<p id="rfc.section.5.p.4">The CACHE-CONTROL flags are a bitwise OR of the following attributes of the first byte. Unused bits MUST be set to zero.</p>
+<p id="rfc.section.5.p.5">The NO-CACHE attribute (0x80). When present on a request this attribute indicates the response information MUST NOT be retreived from a cache. However, the response MAY be stored in a cache and reused for a subsequent query that does not contain this attribute. When present on a response this attribute is equivalent to the NO-STORE attribute.</p>
+<p id="rfc.section.5.p.6">The NO-STORE attribute (0x40). When present, on either a request or a response, this attribute indicates that if the response is not retrieved from a local cache then it MUST NOT be stored in a local cache. All responses to a query with the NO-STORE attribute MUST also include the NO-STORE attribute.</p>
+<p id="rfc.section.5.p.7">The SHORT-STORE attribute (0x20). When present on either a request or a response, this attribute indicates that if the response is not retrieved from a local cache then it MUST NOT be stored in a local cache for more than 60 (TODO) seconds. All responses to a query with the SHORT-STORE attribute MUST also include the SHORT-STORE attribute.</p>
+<p id="rfc.section.5.p.8">The PRIVATE attribute (0x10). When present, on either a request or a response, this attribute indicates that the response MUST only stored to or retrieved from a Per-User local cache <a href="#perusercache" class="xref">Section 4</a>. If there is not a Per-User local cache available the request and response MUST both be handled as if both the NO-CACHE and NO-STORE attributes were present. All responses to a query with the PRIVATE attribute MUST also include the PRIVATE attribute.</p>
+<p id="rfc.section.5.p.9">Queries generated to answer a query, including both intermediate and terminal requests, MUST contain at least the attributes of the original query.</p>
 <h1 id="rfc.section.6">
-<a href="#rfc.section.6">6.</a> <a href="#usage-recursive" id="usage-recursive">Responder Usage and Behavior</a>
+<a href="#rfc.section.6">6.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a>
 </h1>
-<p id="rfc.section.6.p.1">There are two ways responders can handle a &#8220;PRIVATE&#8221; option.  If present, responders MUST not cache any final answer for longer than N seconds. N is a deployment- and instance-specific variable that changes based on responder load and client pool. Larger values of N make probing attacks more feasible.</p>
-<p id="rfc.section.6.p.2">[[OPEN ISSUE: determine if N &gt; 0 is an acceptable trade-off]]</p>
-<p id="rfc.section.6.p.3">Responders MAY cache any intermediate answer used to produce the final response.</p>
-<p id="rfc.section.6.p.4">In cases where responders need to reduce upstream redundant queries, e.g., because they are expensive or otherwise reveal more information to authoritative servers, there are (at least) responders MAY adjust their cache policy to handle private queries with per-client, segmented caches. This approach works as follows:</p>
-<p id="rfc.section.6.p.5">Responders that receive a query Q without the &#8220;Private&#8221; options may treat it as normal, i.e., by serving a response from cache if available. For a query Q with a &#8220;Private&#8221; option sent from client S, responders MUST do the following:</p>
-<p></p>
-
-<ul>
-<li>Index S&#8217;s private cache using Q, if it exists. If response R is present, serve it to S.</li>
-<li>If S&#8217;s private cache does not exist, attempt to resolve Q as normal. Cache the response in S&#8217;s private cache.</li>
-</ul>
-<p id="rfc.section.6.p.7">When S&#8217;s connection to R is torn down, S&#8217;s private cache MUST be flushed and memory released.  Responders SHOULD apply whatever per-client caching policy is sensible to balance utility amongst shared (non-private) and private caches. Segmented caches introduce more memory requirements for resolvers at the cost of improving client privacy.</p>
-<p id="rfc.section.6.p.8">This approach is only viable when clients connect to resolvers over a mechanism that provides the server with a way to uniquely identify clients in a validated way.  For transports such as DNS-over-HTTPS (DOH) <a href="#I-D.ietf-doh-dns-over-https" class="xref">[I-D.ietf-doh-dns-over-https]</a>, this can be the incoming IP and port pair, or a client certificate. Otherwise, malicious clients may flood resolvers with private queries and induce cache fragmentation.</p>
+<p id="rfc.section.6.p.1">((TODO: codepoint for option type))</p>
 <h1 id="rfc.section.7">
-<a href="#rfc.section.7">7.</a> <a href="#dns-over-https-application" id="dns-over-https-application">DNS-over-HTTPS Application</a>
+<a href="#rfc.section.7">7.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
 </h1>
-<p id="rfc.section.7.p.1">A similar per-query &#8220;no-cache&#8221; flag may be implemented with DNS-over-HTTPS <a href="#I-D.ietf-doh-dns-over-https" class="xref">[I-D.ietf-doh-dns-over-https]</a> by appending a random nonce to each request. Specifically, given a random N-byte nonce R, the following query parameter can be appended to a DOH query:</p>
-<pre>
-?rand=R
-</pre>
-<p id="rfc.section.7.p.2">DOH recursive resolvers that use an HTTP caching layer to satisfy duplicate queries SHOULD not satisfy cached queries with the same &#8220;dns&#8221; parameter yet different (or no) &#8220;rand&#8221; parameter.</p>
+<p id="rfc.section.7.p.1">Clients that malicious mark all queries as private may induce excessive upstream responder traffic while responding said queries. However, as malicious clients may do this today by issuing queries for nonsensical or nonexistent domains, this does not introduce a new attack vector.</p>
 <h1 id="rfc.section.8">
-<a href="#rfc.section.8">8.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a>
+<a href="#rfc.section.8">8.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a>
 </h1>
-<p id="rfc.section.8.p.1">((TODO: codepoint for option type))</p>
+<p id="rfc.section.8.p.1">Selectively sending a private DNS query based on user behavior leaks information about user behavior or system policy. For example, if clients only send private queries while in a certain system configuration, then presence of a &#8220;Private&#8221; option indicates, with high probability, that the origin user&#8217;s device is in such a configuration. This could be addressed by marking queries as private &#8211; at random or unilaterally &#8211; such that system configurations are indistinguishable under observation of the &#8220;Private&#8221; option.</p>
 <h1 id="rfc.section.9">
-<a href="#rfc.section.9">9.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
+<a href="#rfc.section.9">9.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a>
 </h1>
-<p id="rfc.section.9.p.1">Clients that malicious mark all queries as private may induce excessive upstream responder traffic while responding said queries. However, as malicious clients may do this today by issuing queries for nonsensical or nonexistent domains, this does not introduce a new attack vector.</p>
-<h1 id="rfc.section.10">
-<a href="#rfc.section.10">10.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a>
-</h1>
-<p id="rfc.section.10.p.1">Selectively sending a private DNS query based on user behavior leaks information about user behavior or system policy. For example, if clients only send private queries while in a certain system configuration, then presence of a &#8220;Private&#8221; option indicates, with high probability, that the origin user&#8217;s device is in such a configuration. This could be addressed by marking queries as private &#8211; at random or unilaterally &#8211; such that system configurations are indistinguishable under observation of the &#8220;Private&#8221; option.</p>
-<h1 id="rfc.section.11">
-<a href="#rfc.section.11">11.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a>
-</h1>
-<p id="rfc.section.11.p.1">The authors thank Georgios Kontaxis for feedback on earlier versions of this document.</p>
+<p id="rfc.section.9.p.1">The authors thank Georgios Kontaxis for feedback on earlier versions of this document.</p>
 <h1 id="rfc.references">
-<a href="#rfc.references">12.</a> References</h1>
+<a href="#rfc.references">10.</a> References</h1>
 <h1 id="rfc.references.1">
-<a href="#rfc.references.1">12.1.</a> Normative References</h1>
+<a href="#rfc.references.1">10.1.</a> Normative References</h1>
 <table><tbody>
 <tr>
 <td class="reference"><b id="Acs17">[Acs17]</b></td>
@@ -504,7 +480,7 @@ ul.toc li {
 <tr>
 <td class="reference"><b id="I-D.ietf-dprive-padding-policy">[I-D.ietf-dprive-padding-policy]</b></td>
 <td class="top">
-<a>Mayrhofer, A.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-dprive-padding-policy-04">Padding Policy for EDNS(0)</a>", Internet-Draft draft-ietf-dprive-padding-policy-04, February 2018.</td>
+<a>Mayrhofer, A.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-dprive-padding-policy-06">Padding Policy for EDNS(0)</a>", Internet-Draft draft-ietf-dprive-padding-policy-06, July 2018.</td>
 </tr>
 <tr>
 <td class="reference"><b id="I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</b></td>
@@ -548,11 +524,11 @@ ul.toc li {
 </tr>
 </tbody></table>
 <h1 id="rfc.references.2">
-<a href="#rfc.references.2">12.2.</a> Informative References</h1>
+<a href="#rfc.references.2">10.2.</a> Informative References</h1>
 <table><tbody><tr>
 <td class="reference"><b id="I-D.ietf-doh-dns-over-https">[I-D.ietf-doh-dns-over-https]</b></td>
 <td class="top">
-<a>Hoffman, P.</a> and <a>P. McManus</a>, "<a href="https://tools.ietf.org/html/draft-ietf-doh-dns-over-https-10">DNS Queries over HTTPS (DOH)</a>", Internet-Draft draft-ietf-doh-dns-over-https-10, June 2018.</td>
+<a>Hoffman, P.</a> and <a>P. McManus</a>, "<a href="https://tools.ietf.org/html/draft-ietf-doh-dns-over-https-14">DNS Queries over HTTPS (DoH)</a>", Internet-Draft draft-ietf-doh-dns-over-https-14, August 2018.</td>
 </tr></tbody></table>
 <h1 id="rfc.appendix.A">
 <a href="#rfc.appendix.A">Appendix A.</a> <a href="#artificial-delays" id="artificial-delays">Artificial Delays</a>
