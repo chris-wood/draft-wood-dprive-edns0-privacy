@@ -1,6 +1,60 @@
 [
 
   {
+    "url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/issues/4",
+    "repository_url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy",
+    "labels_url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/issues/4/labels{/name}",
+    "comments_url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/issues/4/comments",
+    "events_url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/issues/4/events",
+    "html_url": "https://github.com/chris-wood/draft-wood-dprive-edns0-privacy/pull/4",
+    "id": 360406928,
+    "node_id": "MDExOlB1bGxSZXF1ZXN0MjE1NjczOTE5",
+    "number": 4,
+    "title": "a 7234 like alternative",
+    "user": {
+      "login": "mcmanus",
+      "id": 260531,
+      "node_id": "MDQ6VXNlcjI2MDUzMQ==",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/260531?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/mcmanus",
+      "html_url": "https://github.com/mcmanus",
+      "followers_url": "https://api.github.com/users/mcmanus/followers",
+      "following_url": "https://api.github.com/users/mcmanus/following{/other_user}",
+      "gists_url": "https://api.github.com/users/mcmanus/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/mcmanus/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/mcmanus/subscriptions",
+      "organizations_url": "https://api.github.com/users/mcmanus/orgs",
+      "repos_url": "https://api.github.com/users/mcmanus/repos",
+      "events_url": "https://api.github.com/users/mcmanus/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/mcmanus/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "labels": [
+
+    ],
+    "state": "open",
+    "locked": false,
+    "assignee": null,
+    "assignees": [
+
+    ],
+    "milestone": null,
+    "comments": 3,
+    "created_at": "2018-09-14T18:22:29Z",
+    "updated_at": "2018-09-15T03:37:23Z",
+    "closed_at": null,
+    "author_association": "COLLABORATOR",
+    "pull_request": {
+      "url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/pulls/4",
+      "html_url": "https://github.com/chris-wood/draft-wood-dprive-edns0-privacy/pull/4",
+      "diff_url": "https://github.com/chris-wood/draft-wood-dprive-edns0-privacy/pull/4.diff",
+      "patch_url": "https://github.com/chris-wood/draft-wood-dprive-edns0-privacy/pull/4.patch"
+    },
+    "body": "this is pretty radical, and the text is really just there to give a flavor...\r\n\r\nbut this is an experiment in what this would look like if it was more aligned with http cache rules - which have proven to have a lot of these same properties (plus more).. I tried to leave a little room for the plus more cases to evolve..\r\n\r\none of the nice bonuses, not strictly on target for the probing use case, is the ability to cache-bust without resorting to private caches.."
+  },
+  {
     "url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/issues/3",
     "repository_url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy",
     "labels_url": "https://api.github.com/repos/chris-wood/draft-wood-dprive-edns0-privacy/issues/3/labels{/name}",
