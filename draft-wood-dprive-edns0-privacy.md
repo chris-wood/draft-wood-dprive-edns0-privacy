@@ -160,12 +160,12 @@ option indicates that a query is private. Other values MUST
 NOT be used. Responders, such as recursive resolvers, MUST drop
 the query if another value is set, as discussed in Section {{usage-recursive}}.
 
-This option does not affect intermediate queries performed
-to produce an answer to a query. Responders MUST only
-honor it for the final answer. For example, when answering a
-query for a.b.c.d.example.com, only the final answer for
-a.b.c.d.example.com is affected. All intermediate queries,
-e.g., for .com, .example.com, etc., MAY be cached as needed.
+This option does not affect all intermediate queries performed
+to produce an answer to a query. Intermediate answers from TLD
+or Root name servers MAY be cached. In all other cases
+responders MUST honor it. For example, when answering a query for
+a.b.c.d.example.com, only the intermediate answers for . and .com
+MAY be cached as needed.
 
 # Requestor Usage and Behavior {#usage-stub}
 
