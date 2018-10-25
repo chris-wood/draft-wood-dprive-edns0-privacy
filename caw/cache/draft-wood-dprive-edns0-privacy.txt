@@ -5,9 +5,9 @@
 Network Working Group                                     O. Gudmundsson
 Internet-Draft                                               N. Sullivan
 Intended status: Informational                           Cloudflare Inc.
-Expires: March 30, 2019                                          C. Wood
+Expires: April 28, 2019                                          C. Wood
                                                               Apple Inc.
-                                                      September 26, 2018
+                                                        October 25, 2018
 
 
                          EDNS(0) Private Option
@@ -35,7 +35,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on March 30, 2019.
+   This Internet-Draft will expire on April 28, 2019.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 1]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 1]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 2]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 2]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
 
    In this document, we propose a new EDNS(0) option that allows clients
@@ -165,9 +165,9 @@ Internet-Draft           EDNS(0) Private Option           September 2018
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 3]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 3]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
 
       resolve?  If so, this may inflate time required to answer the
@@ -213,21 +213,18 @@ Internet-Draft           EDNS(0) Private Option           September 2018
    Responders, such as recursive resolvers, MUST drop the query if
    another value is set, as discussed in Section Section 6.
 
-   This option does not affect intermediate queries performed to produce
-   an answer to a query.  Responders MUST only honor it for the final
-   answer.  For example, when answering a query for a.b.c.d.example.com,
-   only the final answer for a.b.c.d.example.com is affected.  All
+   This option does not affect all intermediate queries performed to
+   produce an answer to a query.  Intermediate answers from TLD or Root
+   name servers MAY be cached.  In all other cases responders MUST honor
+   it.  For example, when answering a query for a.b.c.d.example.com,
+   only the intermediate answers for . and .com MAY be cached as needed.
 
 
 
-
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 4]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 4]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
-
-   intermediate queries, e.g., for .com, .example.com, etc., MAY be
-   cached as needed.
 
 5.  Requestor Usage and Behavior
 
@@ -275,15 +272,16 @@ Internet-Draft           EDNS(0) Private Option           September 2018
    memory requirements for resolvers at the cost of improving client
    privacy.
 
-
-
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 5]
-
-Internet-Draft           EDNS(0) Private Option           September 2018
-
-
    This approach is only viable when clients connect to resolvers over a
    mechanism that provides the server with a way to uniquely identify
+
+
+
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 5]
+
+Internet-Draft           EDNS(0) Private Option             October 2018
+
+
    clients in a validated way.  For transports such as DNS-over-HTTPS
    (DOH) [I-D.ietf-doh-dns-over-https], this can be the incoming IP and
    port pair, or a client certificate.  Otherwise, malicious clients may
@@ -333,9 +331,11 @@ Internet-Draft           EDNS(0) Private Option           September 2018
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 6]
+
+
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 6]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
 
 12.  References
@@ -389,9 +389,9 @@ Internet-Draft           EDNS(0) Private Option           September 2018
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 7]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 7]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
 
 12.2.  Informative References
@@ -445,9 +445,9 @@ A.1.  Delay Distributions
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 8]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 8]
 
-Internet-Draft           EDNS(0) Private Option           September 2018
+Internet-Draft           EDNS(0) Private Option             October 2018
 
 
 Authors' Addresses
@@ -501,4 +501,4 @@ Authors' Addresses
 
 
 
-Gudmundsson, et al.      Expires March 30, 2019                 [Page 9]
+Gudmundsson, et al.      Expires April 28, 2019                 [Page 9]
