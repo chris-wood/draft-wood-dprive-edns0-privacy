@@ -20,12 +20,12 @@ subject to a Simplified BSD License) in Contributions.
 ## Other Resources
 
 Discussion of this work occurs on the
-[taps working group mailing list](https://mailarchive.ietf.org/arch/browse/taps/)
-([subscribe](https://www.ietf.org/mailman/listinfo/taps)).  In addition to
-contributions in github, you are encouraged to participate in discussions there.
+[dprive working group mailing list](https://mailarchive.ietf.org/arch/browse/dprive/)
+([subscribe](https://www.ietf.org/mailman/listinfo/dprive)).  In addition to
+contributions in GitHub, you are encouraged to participate in discussions there.
 
 **Note**: Some working groups adopt a policy whereby substantive discussion of
 technical issues needs to occur on the mailing list.
 
 You might also like to familiarize yourself with other
-[working group documents](https://datatracker.ietf.org/wg/taps/documents/).
+[working group documents](https://datatracker.ietf.org/wg/dprive/documents/).
