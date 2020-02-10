@@ -1,439 +1,1097 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>EDNS(0) Private Option</title>
+<meta content="Olafur Gudmundsson" name="author">
+<meta content="Nick Sullivan" name="author">
+<meta content="Christopher A. Wood" name="author">
+<meta content='
+       This document specifies the EDNS(0) "Private" option, which allows
+DNS clients to signal to servers (recursive resolvers) that query
+answers should not be cached. This option is intended to mitigate
+cache probing attacks on DNS query privacy. 
+    ' name="description">
+<meta content="xml2rfc 2.37.3" name="generator">
+<meta content="Internet-Draft" name="keyword">
+<meta content="draft-wood-dprive-edns0-privacy-latest" name="ietf.draft">
+<link href="draft-wood-dprive-edns0-privacy.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@import url('https://martinthomson.github.io/i-d-template/fonts.css');
 
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-<head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
-  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
-
-  <title>EDNS(0) Private Option</title>
-
-  
-<style type="text/css">/*<![CDATA[*/
-
+html {
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --small-font-size: 14.5px;
+}
 body {
-  font: 16px "Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
-  color: #333;
-  font-size-adjust: 0.5;
-  line-height: 24px;
-  margin: 75px auto;
   max-width: 624px;
+  margin: 75px auto;
   padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
 }
 
-.title, .filename, h1, h2, h3, h4, h5 {
-  font: 16px "Roboto Condensed","Helvetica Neue","Open Sans",Helvetica,Calibri,sans-serif;
-  font-size-adjust: 0.5;
-  font-weight: bold;
-  color: #333;
-  line-height: 100%;
-  margin: 0.8em 0 0.3em;
-}
-.title, #rfc\.title h1 { font-size: 32px; }
-h1, section h1, h2, section h2, section h3, nav h2 { font-size: 20px; }
-h3, section h4, h4, section h5 { font-size: 16px; }
-h1 a[href], h2 a[href], h3 a[href], h4 a[href] {
-  color: #333;
-}
-
-table {
-  margin-left: 0em;
-  border-collapse: collapse;
-}
-th {
-  text-align: left;
-  border-bottom: 2px solid #ddd;
-}
-td {
-  border-top: 1px solid #ddd;
-  vertical-align: top;
-}
-tr:nth-child(2n+1) > td,
-tr:nth-child(2n+1) > th {
-  background-color: #f9f9f9;
-}
-td.reference {
-  max-width: 200px;
-  border-top: none;
-  padding-right: 1em;
-}
-.right {
-  text-align: right;
-}
-
-
-table.header, table#rfc\.headerblock {
-  width: 100%;
-}
-table.header td, table#rfc\.headerblock td {
-  border: none;
-  background-color: transparent;
-  color: black;
-  padding: 0;
-}
-.filename {
-  display: block;
-  color: rgb(119, 119, 119);
-  font-size: 20px;
-  font-weight: normal;
-  line-height: 100%;
-  margin: 10px 0 32px;
-}
-#rfc\.abstract+p, #rfc\.abstract p {
-  font-size: 20px;
-  line-height: 28px;
-}
-
-samp, tt, code, pre {
-  font: 15px Consolas, monospace;
-  font-size-adjust: none;
-}
-pre {
-  background-color: #eee;
-  border: 1px solid #ddd;
-  overflow-x: auto;
-  padding: 5px;
-  margin: 5px;
-}
-.figure, caption {
-  font-style: italic;
-  margin: 0 1.5em;
-  text-align: left;
-}
-
-address {
-  margin: 16px 2px;
-  line-height: 20px;
-}
-.vcard {
-  font-style: normal;
-}
-.vcardline {
-  display: block;
-}
-.vcardline .fn, address b {
-  font-weight: normal;
-}
-.vcardline .hidden {
+.ears {
   display: none;
 }
 
-dl {
+/* headings */
+#title, h1, h2, h3, h4, h5, h6 {
+  font-family: "Cabin Condensed", sans-serif;
+  font-weight: 600;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+#title {
+  padding: 1em 0 0.2em;
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 26px;
+}
+h4, h5, h6 {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+}
+#abstract+p, #abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 18px;
+  line-height: 24px;
+}
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div, span {
+  position: relative;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 1em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
   margin-left: 1em;
 }
-dl.dl-horizontal: {
-  margin-left: 0;
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
 }
 dl > dt {
   float: left;
   margin-right: 1em;
 }
-dl.nohang > dt {
-  float: none;
-}
 dl > dd {
-  margin-bottom: .5em;
+  margin-bottom: .8em;
+  min-height: 1.3em;
 }
-dl.compact > dd {
+dl.compact > dd, .dlCompact > dd {
   margin-bottom: 0em;
 }
 dl > dd > dl {
   margin-top: 0.5em;
   margin-bottom: 0em;
 }
-ul.empty {
-  list-style-type: none;
-}
-ul.empty li {
-  margin-top: .5em;
-}
 
-hr {
-  border: 0;
-  border-top: 1px solid #eee;
-}
-hr.noprint {
-  display: none;
-}
-
-a {
+/* links */
+a, a[href].selfRef:hover {
   text-decoration: none;
 }
+a[href].selfRef {
+  color: var(--text-color);
+}
 a[href] {
-  color: #2a6496;
+  color: var(--link-color);
 }
 a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px 'Oxygen Mono', monospace;
+}
+pre {
+  border: 1px solid var(--line-color);
+  line-height: 17px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+}
+@media screen {
+  pre {
+    display: inline-block;
+    overflow-x: auto;
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  pre + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  margin: 1em 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.75em;
+}
+th {
+  text-align: left;
   background-color: #eee;
 }
-
-ol, ul, li, p {
+tr:nth-child(2n) > td {
+  background-color: var(--background-color);
+}
+tr:nth-child(2n+1) > td {
+  background-color: var(--highlight-color);
+}
+thead+tbody tr:nth-child(2n) > td {
+  background-color: var(--highlight-color);
+}
+thead+tbody tr:nth-child(2n+1) > td {
+  background-color: var(--background-color);
+}
+table caption {
+  font-style: italic;
+  margin: 0.3em 0;
   padding: 0;
-  margin: 0.5em 0 0.5em 2em;
+  text-align: left;
 }
-li, p {
-  margin-left: 0;
-}
-address {
-  font-style: normal;
-}
-
-ul.toc ul {
-  margin: 0 0 0 2em;
-}
-ul.toc li {
-  list-style: none;
+table p {
+  /* XXX to avoid bottom margin on table row signifiers. If paragraphs should
+     be allowed within tables more generally, it would be far better to select on a class. */
   margin: 0;
 }
 
-@media screen and (min-width: 924px) {
-  body {
-    padding-right: 350px;
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  visibility: hidden;
+  user-select: none;
+}
+a.pilcrow[href] { color: #ddd; }
+a.pilcrow[href]:hover { text-decoration: none; }
+@media screen {
+  :hover > a.pilcrow {
+    visibility: visible;
   }
-  body>ul.toc, body>#rfc\.toc {
+  a.pilcrow:hover {
+    background-color: transparent;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 8em;
+}
+#identifiers dt {
+  width: var(--identifier-width);
+  margin: 0;
+  clear: left;
+  float: left;
+  text-align: right;
+}
+#identifiers dd {
+  margin: 0 0 0 calc(1em + var(--identifier-width));
+  min-width: 5em;
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+#toc nav ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+#toc nav li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+.index ul {
+  margin: 0 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.index ul ul {
+  margin: 0;
+}
+.index li {
+  margin: 0;
+  text-indent: -2em;
+  padding-left: 2em;
+  padding-bottom: 5px;
+}
+.indexIndex {
+  margin: 0.5em 0 1em;
+}
+.index a {
+  font-weight: 700;
+}
+/* make the index two-column on all but the smallest screens */
+@media (min-width: 600px) {
+  .index ul {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  .index ul ul {
+    column-count: 1;
+    column-gap: 0;
+  }
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 600px) {
+  #authors-addresses {
+    display: relative;
+    padding: 32px 0 0;
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #name-authors-addresses {
+    position: absolute;
+    top: 0px;
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+  }
+}
+
+/* temporary notes */
+.rfcEditorRemove::before {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.2em;
+  content: "The RFC Editor will remove this note";
+  color: #b76427;
+  background-color: rgba(249, 232, 105, 0.3);
+}
+.rfcEditorRemove {
+  position: relative;
+  padding-top: 1.8em;
+  background-color: rgba(249, 232, 105, 0.3);
+  border-radius: 3px;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 953px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc.active {
+      opacity: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 8px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active nav {
+    display: block;
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin-top: 2px;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 954px) {
+  body {
+    padding-right: 380px;
+  }
+  #toc {
     position: fixed;
     bottom: 0;
     right: 0;
-    right: calc(50vw - 500px);
-    width: 300px;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
     z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
     overflow: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
   }
-  body>#rfc\.toc {
-    top: 55px;
+  #toc nav > ul  {
+    margin-bottom: 2em;
   }
-  body>ul.toc {
-    top: 100px;
-  }
-
-  ul.toc {
+  #toc ul {
     margin: 0 0 0 4px;
-    font-size: 12px;
-    line-height: 20px;
+    font-size: var(--small-font-size);
   }
-  ul.toc ul {
-    margin-left: 1.2em;
+  #toc ul p, #toc ul li {
+    margin: 2px 0;
+    line-height: 22px;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
   }
 }
 
-.github-fork-ribbon-wrapper {
-  display: none;
-}
-@media screen and (min-width: 800px) {
-  /* "Fork me on GitHub" CSS ribbon based on
-   * https://github.com/simonwhitaker/github-fork-ribbon-css
-   */
-  .github-fork-ribbon {
-    position: absolute;
-    padding: 2px 0;
-    background-color: #a00;
-    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15));
-    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.5);
-    font: 700 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-    pointer-events: auto;
-
-    top: 38px;
-    right: -45px;
-
-    transform: rotate(45deg);
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
   }
-
-  .github-fork-ribbon a[href],
-  .github-fork-ribbon a[href]:hover {
-    color: #fff;
-    background-color: transparent;
-    text-decoration: none;
-    text-shadow: 0 -1px rgba(0, 0, 0, 0.5);
-    text-align: center;
-
-    width: 190px;
-    line-height: 18px;
-
-    display: inline-block;
-    padding: 2px 0;
-
-    border: 1.5px dotted #fff;
-    border-color: rgba(255, 255, 255, 0.6);
+  @top-center {
+    content: normal;
+    border: none;
   }
-
-  .github-fork-ribbon-wrapper {
-    display: block;
-    width: 130px;
-    height: 130px;
-    position: absolute;
-    overflow: hidden;
-    top: 0; right: 0;
-    z-index: 2;
-    pointer-events: none;
+  @top-right {
+    content: normal;
+    border: none;
   }
 }
-@media screen and (min-width: 1000px) {
-  .github-fork-ribbon-wrapper {
-    position: fixed;
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Changes introduced to fix issues found during implementation */
+
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin: 8px 0.5em 0;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table td.text-left,
+table th.text-left {
+  text-align: left;
+}
+table td.text-center,
+table th.text-center {
+  text-align: center;
+}
+table td.text-right,
+table th.text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 20em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Provide table alignment support.  We can't use the alignX classes above
+   since they do unwanted things with caption and other styling. */
+table.right {
+ margin-left: auto;
+ margin-right: 0;
+}
+table.center {
+ margin-left: auto;
+ margin-right: auto;
+}
+table.left {
+ margin-left: 0;
+ margin-right: auto;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+
+@media print {
+  .toplink {
+    display: none;
   }
-  /*]]>*/</style>
-  <meta name="viewport" content="initial-scale=1.0">
 
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
 
-  <link href="#rfc.toc" rel="Contents">
-<link href="#rfc.section.1" rel="Chapter" title="1 Introduction">
-<link href="#rfc.section.2" rel="Chapter" title="2 Terminology">
-<link href="#rfc.section.3" rel="Chapter" title="3 Cache Probe Privacy Attack">
-<link href="#rfc.section.3.1" rel="Chapter" title="3.1 Recursive Resolver Deployments">
-<link href="#rfc.section.4" rel="Chapter" title="4 PRIVATE Option">
-<link href="#rfc.section.5" rel="Chapter" title="5 Requestor Usage and Behavior">
-<link href="#rfc.section.6" rel="Chapter" title="6 Responder Usage and Behavior">
-<link href="#rfc.section.7" rel="Chapter" title="7 DNS-over-HTTPS Application">
-<link href="#rfc.section.8" rel="Chapter" title="8 IANA Considerations">
-<link href="#rfc.section.9" rel="Chapter" title="9 Security Considerations">
-<link href="#rfc.section.10" rel="Chapter" title="10 Privacy Considerations">
-<link href="#rfc.section.11" rel="Chapter" title="11 Acknowledgments">
-<link href="#rfc.references" rel="Chapter" title="12 References">
-<link href="#rfc.references.1" rel="Chapter" title="12.1 Normative References">
-<link href="#rfc.references.2" rel="Chapter" title="12.2 Informative References">
-<link href="#rfc.appendix.A" rel="Chapter" title="A Artificial Delays">
-<link href="#rfc.appendix.A.1" rel="Chapter" title="A.1 Delay Distributions">
-<link href="#rfc.authors" rel="Chapter">
+  /* Avoid page breaks inside dl and author address entries */
+  dd {
+    page-break-before: avoid;
+  }
+  .vcard {
+    page-break-inside: avoid;
+  }
 
-
-  <meta name="generator" content="xml2rfc version 2.9.6 - https://tools.ietf.org/tools/xml2rfc" />
-  <link rel="schema.dct" href="http://purl.org/dc/terms/" />
-
-  <meta name="dct.creator" content="Gudmundsson, O., Sullivan, N., and C. Wood" />
-  <meta name="dct.identifier" content="urn:ietf:id:draft-wood-dprive-edns0-privacy-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2018-06-15" />
-  <meta name="dct.abstract" content="This document specifies the EDNS(0) &#8220;Private&#8221; option, which allows DNS clients to signal to servers (recursive resolvers) that query answers should not be cached. This option is intended to mitigate cache probing attacks on DNS query privacy." />
-  <meta name="description" content="This document specifies the EDNS(0) &#8220;Private&#8221; option, which allows DNS clients to signal to servers (recursive resolvers) that query answers should not be cached. This option is intended to mitigate cache probing attacks on DNS query privacy." />
-
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+</style>
+<link href="rfc-local.css" rel="stylesheet" type="text/css">
 </head>
-
 <body>
-
-  <table class="header">
-    <tbody>
-    
-    	<tr>
-<td class="left">Network Working Group</td>
-<td class="right">O. Gudmundsson</td>
-</tr>
-<tr>
+<script src="metadata.min.js"></script>
+<table class="ears">
+<thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="right">N. Sullivan</td>
-</tr>
-<tr>
-<td class="left">Intended status: Informational</td>
-<td class="right">Cloudflare Inc.</td>
-</tr>
-<tr>
-<td class="left">Expires: December 17, 2018</td>
-<td class="right">C. Wood</td>
-</tr>
-<tr>
-<td class="left"></td>
-<td class="right">Apple Inc.</td>
-</tr>
-<tr>
-<td class="left"></td>
-<td class="right">June 15, 2018</td>
-</tr>
-
-    	
-    </tbody>
-  </table>
-
-  <p class="title">EDNS(0) Private Option<br />
-  <span class="filename">draft-wood-dprive-edns0-privacy-latest</span></p>
-  
-  <h1 id="rfc.abstract"><a href="#rfc.abstract">Abstract</a></h1>
-<p>This document specifies the EDNS(0) &#8220;Private&#8221; option, which allows DNS clients to signal to servers (recursive resolvers) that query answers should not be cached. This option is intended to mitigate cache probing attacks on DNS query privacy.</p>
-<h1 id="rfc.status"><a href="#rfc.status">Status of This Memo</a></h1>
-<p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
-<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
-<p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on December 17, 2018.</p>
-<h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
-<p>Copyright (c) 2018 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
-<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
-
-  
-  <hr class="noprint" />
-  <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
-  <ul class="toc">
-
-  	<li>1.   <a href="#rfc.section.1">Introduction</a>
+<td class="center">EDNS(0) Private Option</td>
+<td class="right">February 2020</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Gudmundsson, et al.</td>
+<td class="center">Expires 13 August 2020</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-wood-dprive-edns0-privacy-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2020-02-10" class="published">10 February 2020</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2020-08-13">13 August 2020</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">O. Gudmundsson</div>
+<div class="org">Cloudflare Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">N. Sullivan</div>
+<div class="org">Cloudflare Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">C.A. Wood</div>
+<div class="org">Apple Inc.</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">EDNS(0) Private Option</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document specifies the EDNS(0) "Private" option, which allows
+DNS clients to signal to servers (recursive resolvers) that query
+answers should not be cached. This option is intended to mitigate
+cache probing attacks on DNS query privacy.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note" id="section-note.1">
+      <h2 id="name-note-to-readers">
+<a href="#name-note-to-readers" class="section-name selfRef">Note to Readers</a>
+      </h2>
+<p id="section-note.1-1">Source for this draft and an issue tracker can be found at
+  <a href="https://github.com/chris-wood/draft-wood-dprive-edns0-privacy">https://github.com/chris-wood/draft-wood-dprive-edns0-privacy</a>.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 13 August 2020.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2020 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Simplified BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Simplified BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1"><a href="#section-1" class="xref">1</a>.  <a href="#name-introduction" class="xref">Introduction</a><a href="#section-toc.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
-<li>2.   <a href="#rfc.section.2">Terminology</a>
+<li class="toc ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="xref">2</a>.  <a href="#name-terminology" class="xref">Terminology</a><a href="#section-toc.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
-<li>3.   <a href="#rfc.section.3">Cache Probe Privacy Attack</a>
+<li class="toc ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="xref">3</a>.  <a href="#name-cache-probe-privacy-attack" class="xref">Cache Probe Privacy Attack</a><a href="#section-toc.1-1.3.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="xref">3.1</a>.  <a href="#name-recursive-resolver-deployme" class="xref">Recursive Resolver Deployments</a><a href="#section-toc.1-1.3.2.1.1" class="pilcrow">¶</a></p>
 </li>
-<ul><li>3.1.   <a href="#rfc.section.3.1">Recursive Resolver Deployments</a>
-</li>
-</ul><li>4.   <a href="#rfc.section.4">PRIVATE Option</a>
-</li>
-<li>5.   <a href="#rfc.section.5">Requestor Usage and Behavior</a>
-</li>
-<li>6.   <a href="#rfc.section.6">Responder Usage and Behavior</a>
-</li>
-<li>7.   <a href="#rfc.section.7">DNS-over-HTTPS Application</a>
-</li>
-<li>8.   <a href="#rfc.section.8">IANA Considerations</a>
-</li>
-<li>9.   <a href="#rfc.section.9">Security Considerations</a>
-</li>
-<li>10.   <a href="#rfc.section.10">Privacy Considerations</a>
-</li>
-<li>11.   <a href="#rfc.section.11">Acknowledgments</a>
-</li>
-<li>12.   <a href="#rfc.references">References</a>
-</li>
-<ul><li>12.1.   <a href="#rfc.references.1">Normative References</a>
-</li>
-<li>12.2.   <a href="#rfc.references.2">Informative References</a>
-</li>
-</ul><li>Appendix A.   <a href="#rfc.appendix.A">Artificial Delays</a>
-</li>
-<ul><li>A.1.   <a href="#rfc.appendix.A.1">Delay Distributions</a>
-</li>
-</ul><li><a href="#rfc.authors">Authors' Addresses</a>
-</li>
-
-
-  </ul>
-
-  <h1 id="rfc.section.1">
-<a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a>
-</h1>
-<p id="rfc.section.1.p.1">The Domain Name System (DNS) <a href="#RFC1035" class="xref">[RFC1035]</a> was designed to transport all messages in cleartext. This provides no privacy, confidentiality, or integrity (in the absence of DNSSEC <a href="#RFC4033" class="xref">[RFC4033]</a>) for all client queries and responses against a network adversary.  <a href="#RFC7858" class="xref">[RFC7858]</a> standardizes running DNS over (D)TLS to protect data in transit.</p>
-<p id="rfc.section.1.p.2">Even if data is protected in transit, the current caching behavior of recursive DNS resolvers introduces a side channel for an active network adversary to learn queries made by other clients.  Specifically, in response to a client&#8217;s query, a recursive resolver will fetch the corresponding record by traversing the DNS hierarchy and cache it to more efficiently respond to the same query in the future.  Returning a cached record is expected to be faster than making network requests to fetch it and that timing difference is observable by the client making the query.  Because the cache is shared by all clients, if a client observes a fast response time for a given query it can infer that some other client has already made that query in the past.  Malicious clients may exploit this caching behavior to use the cache as an oracle for the network activity of other clients.</p>
-<p id="rfc.section.1.p.3">In this document, we propose a new EDNS(0) option that allows clients to mark queries as privacy sensitive. We specify recursive behavior when processing private queries and caching their responses. Usage of this option SHOULD only be enabled when running over a spoofing-resistant transport such as TCP, as recursive resolvers may choose to cache responses in per-user caches identified by network information such as the source port and IP.</p>
-<h1 id="rfc.section.2">
-<a href="#rfc.section.2">2.</a> <a href="#terminology" id="terminology">Terminology</a>
-</h1>
-<p id="rfc.section.2.p.1">The terms &#8220;Requestor&#8221; and &#8220;Responder&#8221; are to be interpreted as specified in <a href="#RFC6891" class="xref">[RFC6891]</a>.</p>
-<p></p>
-
-<ul><li>Private query: A query carrying the PRIVATE EDNS(0) option.</li></ul>
-<h1 id="rfc.section.3">
-<a href="#rfc.section.3">3.</a> <a href="#attacks" id="attacks">Cache Probe Privacy Attack</a>
-</h1>
-<p id="rfc.section.3.p.1">Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents eavesdroppers observing queries and responses in transit. However, as this only protects the data channel, other privacy attacks remain possible. In this document, we focus solely on the cache probe attack outlined in Section <a href="#introduction" class="xref">Section 1</a>. We describe the attack in more detail here.</p>
-<p id="rfc.section.3.p.2">Let S be a benign client (requestor) using recursive resolver (responder) R.  In answering S&#8217;s queries, R speaks to several authoritative servers A1,&#8230;,An.  Let RTT(requestor, responder) be a function that computes the average RTT for a given query and response between requestor and responder. For example, RTT(R,A1) is the average RTT for answering a query sent by R and answered by A1. Let Delay(q, r) be a function that measures the delay in answering request q with response r.  Finally, let Adv be a malicious client who wishes to learn what queries were asked by S.  Adv proceeds as follows. Assume Adv wants to learn if S queried for q = example.com.  To do so, Adv requests q from R, yielding response r, and measures d = delay(q, r). Then, Adv sends a random query q&#8217; in the same top-level domain (e.g., .com), yielding response r&#8217;, that S is unlikely to have requested, and measures d&#8217; = delay(q&#8217;, r&#8217;).  If |d - d&#8217;| ~ 0, then Adv concludes q was not requested by S (or someone else). Otherwise, Adv concludes that, with some probability q was requested.</p>
-<p id="rfc.section.3.p.3">Severity of this attack depends on several factors:</p>
-<p></p>
-
-<ul>
-<li>How many clients (stubs) are served by R.</li>
-<li>What types of queries are requested by other clients of R. For example, do they require more recursive resolution steps to resolve? If so, this may inflate time required to answer the query.</li>
 </ul>
-<p id="rfc.section.3.p.5">While learning the existence of a certain query may not always constitute a privacy violation, it may for some clients.</p>
-<h1 id="rfc.section.3.1">
-<a href="#rfc.section.3.1">3.1.</a> <a href="#recursive-resolver-deployments" id="recursive-resolver-deployments">Recursive Resolver Deployments</a>
-</h1>
-<p id="rfc.section.3.1.p.1">Large-scale recursive resolvers, such as those operated by Quad9, Cloudflare, and Google, traditionally deploy several servers behind well known anycast IP addresses, such as 8.8.8.8 or 9.9.9.9. Thus, stub queries to such well known resolvers may not be serviced by the same logical recursive resolver. UDP queries and TCP connections may be routed to different resolvers based on distance and connection cost.  This increases the difficulty of cache probing attacks. Recursive resolvers that are not deployed at such large scales are more susceptible to this type of attack.</p>
-<h1 id="rfc.section.4">
-<a href="#rfc.section.4">4.</a> <a href="#private-option" id="private-option">PRIVATE Option</a>
-</h1>
-<p id="rfc.section.4.p.1">EDNS(0) <a href="#RFC6891" class="xref">[RFC6891]</a> specifies a mechanism to include new options in DNS messages.  This document specifies a new &#8220;PRIVATE&#8221; option that allows clients to express the maximum desired cache lifetime for DNS query answers.</p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="xref">4</a>.  <a href="#name-private-option" class="xref">PRIVATE Option</a><a href="#section-toc.1-1.4.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="xref">5</a>.  <a href="#name-requestor-usage-and-behavio" class="xref">Requestor Usage and Behavior</a><a href="#section-toc.1-1.5.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="xref">6</a>.  <a href="#name-responder-usage-and-behavio" class="xref">Responder Usage and Behavior</a><a href="#section-toc.1-1.6.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="xref">7</a>.  <a href="#name-dns-over-https-application" class="xref">DNS-over-HTTPS Application</a><a href="#section-toc.1-1.7.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="xref">8</a>.  <a href="#name-iana-considerations" class="xref">IANA Considerations</a><a href="#section-toc.1-1.8.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="xref">9</a>.  <a href="#name-security-considerations" class="xref">Security Considerations</a><a href="#section-toc.1-1.9.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="xref">10</a>. <a href="#name-privacy-considerations" class="xref">Privacy Considerations</a><a href="#section-toc.1-1.10.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="xref">11</a>. <a href="#name-acknowledgments" class="xref">Acknowledgments</a><a href="#section-toc.1-1.11.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="xref">12</a>. <a href="#name-references" class="xref">References</a><a href="#section-toc.1-1.12.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="xref">12.1</a>.  <a href="#name-normative-references" class="xref">Normative References</a><a href="#section-toc.1-1.12.2.1.1" class="pilcrow">¶</a></p>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="xref">12.2</a>.  <a href="#name-informative-references" class="xref">Informative References</a><a href="#section-toc.1-1.12.2.2.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#section-appendix.a" class="xref">Appendix A</a>.  <a href="#name-artificial-delays" class="xref">Artificial Delays</a><a href="#section-toc.1-1.13.1" class="pilcrow">¶</a></p>
+<ul class="toc ulEmpty">
+<li class="toc ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#section-a.1" class="xref">A.1</a>.  <a href="#name-delay-distributions" class="xref">Delay Distributions</a><a href="#section-toc.1-1.13.2.1.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</li>
+<li class="toc ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#section-appendix.b" class="xref"></a><a href="#name-authors-addresses" class="xref">Authors' Addresses</a><a href="#section-toc.1-1.14.1" class="pilcrow">¶</a></p>
+</li>
+</ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The Domain Name System (DNS) <span>[<a href="#RFC1035" class="xref">RFC1035</a>]</span> was designed to transport all messages
+in cleartext. This provides no privacy, confidentiality, or integrity
+(in the absence of DNSSEC <span>[<a href="#RFC4033" class="xref">RFC4033</a>]</span>) for all client queries and responses
+against a network adversary.
+<span>[<a href="#RFC7858" class="xref">RFC7858</a>]</span> standardizes running DNS over (D)TLS to protect
+data in transit.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Even if data is protected in transit, the current caching behavior of
+recursive DNS resolvers introduces a side channel for an active network
+adversary to learn queries made by other clients.
+Specifically, in response to a client's query, a recursive resolver will
+fetch the corresponding record by traversing the DNS hierarchy and cache
+it to more efficiently respond to the same query in the future.
+Returning a cached record is expected to be faster than making network
+requests to fetch it and that timing difference is observable by the
+client making the query.
+Because the cache is shared by all clients, if a client observes a fast
+response time for a given query it can infer that some other client has
+already made that query in the past.
+Malicious clients may exploit this caching behavior to use the cache
+as an oracle for the network activity of other clients.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">In this document, we propose a new EDNS(0) option that allows clients to mark
+queries as privacy sensitive. We specify recursive behavior when processing
+private queries and caching their responses. Usage of this option SHOULD only
+be enabled when running over a spoofing-resistant transport such as TCP, as
+recursive resolvers may choose to cache responses in per-user caches identified by
+network information such as the source port and IP.<a href="#section-1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">The terms "Requestor" and "Responder" are to be interpreted as
+specified in <span>[<a href="#RFC6891" class="xref">RFC6891</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-2-2.1">Private query: A query carrying the PRIVATE EDNS(0) option.<a href="#section-2-2.1" class="pilcrow">¶</a>
+</li>
+</ul>
+</section>
+</div>
+<div id="attacks">
+<section id="section-3">
+      <h2 id="name-cache-probe-privacy-attack">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-cache-probe-privacy-attack" class="section-name selfRef">Cache Probe Privacy Attack</a>
+      </h2>
+<p id="section-3-1">Securing DNS traffic in transit via DNS-over-TLS has many benefits. Minimally, it prevents
+eavesdroppers observing queries and responses in transit. However, as this only protects the
+data channel, other privacy attacks remain possible. In this document, we focus solely
+on the cache probe attack outlined in Section <a href="#introduction" class="xref">Section 1</a>. We describe the attack
+in more detail here.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">Let S be a benign client (requestor) using recursive resolver (responder) R.
+In answering S's queries, R speaks to several authoritative servers A1,...,An.
+Let RTT(requestor, responder) be a function that computes the average RTT for a given
+query and response between requestor and responder. For example, RTT(R,A1) is the
+average RTT for answering a query sent by R and answered by A1. Let Delay(q, r)
+be a function that measures the delay in answering request q with response r.
+Finally, let Adv be a malicious client who wishes to learn what queries were asked by S.
+Adv proceeds as follows. Assume Adv wants to learn if S queried for q = example.com.
+To do so, Adv requests q from R, yielding response r, and measures d = delay(q, r). Then,
+Adv sends a random query q' in the same top-level domain (e.g., .com), yielding response r',
+that S is unlikely to have requested, and measures d' = delay(q', r').
+If |d - d'| ~ 0, then Adv concludes q was not requested by S (or someone else). Otherwise,
+Adv concludes that, with some probability q was requested.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">Severity of this attack depends on several factors:<a href="#section-3-3" class="pilcrow">¶</a></p>
+<ul>
+<li id="section-3-4.1">How many clients (stubs) are served by R.<a href="#section-3-4.1" class="pilcrow">¶</a>
+</li>
+<li id="section-3-4.2">What types of queries are requested by other clients of R. For example, do they require more
+recursive resolution steps to resolve? If so, this may inflate time required to answer
+the query.<a href="#section-3-4.2" class="pilcrow">¶</a>
+</li>
+</ul>
+<p id="section-3-5">While learning the existence of a certain query may not always constitute a privacy violation,
+it may for some clients.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<div id="recursive-resolver-deployments">
+<section id="section-3.1">
+        <h3 id="name-recursive-resolver-deployme">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-recursive-resolver-deployme" class="section-name selfRef">Recursive Resolver Deployments</a>
+        </h3>
+<p id="section-3.1-1">Large-scale recursive resolvers, such as those operated by Quad9, Cloudflare, and Google,
+traditionally deploy several servers behind well known anycast IP addresses, such
+as 8.8.8.8 or 9.9.9.9. Thus, stub queries to such well known resolvers may not be
+serviced by the same logical recursive resolver. UDP queries and TCP connections
+may be routed to different resolvers based on distance and connection cost.
+This increases the difficulty of cache probing attacks. Recursive resolvers that are not
+deployed at such large scales are more susceptible to this type of attack.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="private-option">
+<section id="section-4">
+      <h2 id="name-private-option">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-private-option" class="section-name selfRef">PRIVATE Option</a>
+      </h2>
+<p id="section-4-1">EDNS(0) <span>[<a href="#RFC6891" class="xref">RFC6891</a>]</span> specifies a mechanism to include new options in DNS messages.
+This document specifies a new "PRIVATE" option that allows clients to express
+the maximum desired cache lifetime for DNS query answers.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-4-2">
 <pre>
 0                       8                      16
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -443,206 +1101,286 @@ ul.toc li {
 +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 |    PRIVATE Option     |
 +--+--+--+--+--+--+--+--+
-</pre>
-<p id="rfc.section.4.p.2">The OPTION-CODE for the &#8220;PRIVATE&#8221; option is TBD.</p>
-<p id="rfc.section.4.p.3">The OPTION-LENGTH for the &#8220;PRIVATE&#8221; option is one octet.</p>
-<p id="rfc.section.4.p.4">The PRIVATE octet MUST be set to 0x01. Presence of this option indicates that a query is private. Other values MUST NOT be used. Responders, such as recursive resolvers, MUST drop the query if another value is set, as discussed in Section <a href="#usage-recursive" class="xref">Section 6</a>.</p>
-<p id="rfc.section.4.p.5">This option does not affect intermediate queries performed to produce an answer to a query. Responders MUST only honor it for the final answer. For example, when answering a query for a.b.c.d.example.com, only the final answer for a.b.c.d.example.com is affected. All intermediate queries, e.g., for .com, .example.com, etc., MAY be cached as needed.</p>
-<h1 id="rfc.section.5">
-<a href="#rfc.section.5">5.</a> <a href="#usage-stub" id="usage-stub">Requestor Usage and Behavior</a>
-</h1>
-<p id="rfc.section.5.p.1">Requestors MAY include a &#8220;PRIVATE&#8221; option for any query deemed private or sensitive. This may include queries for explicitly known-to-be private domains or for all domains when operating in a &#8220;private&#8221; mode. Specific recommendations for when to include this option are outside the scope of this document.</p>
-<h1 id="rfc.section.6">
-<a href="#rfc.section.6">6.</a> <a href="#usage-recursive" id="usage-recursive">Responder Usage and Behavior</a>
-</h1>
-<p id="rfc.section.6.p.1">There are two ways responders can handle a &#8220;PRIVATE&#8221; option.  If present, responders MUST not cache any final answer for longer than N seconds. N is a deployment- and instance-specific variable that changes based on responder load and client pool. Larger values of N make probing attacks more feasible.</p>
-<p id="rfc.section.6.p.2">[[OPEN ISSUE: determine if N &gt; 0 is an acceptable trade-off]]</p>
-<p id="rfc.section.6.p.3">Responders MAY cache any intermediate answer used to produce the final response.</p>
-<p id="rfc.section.6.p.4">In cases where responders need to reduce upstream redundant queries, e.g., because they are expensive or otherwise reveal more information to authoritative servers, there are (at least) responders MAY adjust their cache policy to handle private queries with per-client, segmented caches. This approach works as follows:</p>
-<p id="rfc.section.6.p.5">Responders that receive a query Q without the &#8220;Private&#8221; options may treat it as normal, i.e., by serving a response from cache if available. For a query Q with a &#8220;Private&#8221; option sent from client S, responders MUST do the following:</p>
-<p></p>
-
+</pre><a href="#section-4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4-3">The OPTION-CODE for the "PRIVATE" option is TBD.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The OPTION-LENGTH for the "PRIVATE" option is one octet.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">The PRIVATE octet MUST be set to 0x01. Presence of this
+option indicates that a query is private. Other values MUST
+NOT be used. Responders, such as recursive resolvers, MUST drop
+the query if another value is set, as discussed in Section <a href="#usage-recursive" class="xref">Section 6</a>.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">This option does not affect intermediate queries performed
+to produce an answer to a query. Responders MUST only
+honor it for the final answer. For example, when answering a
+query for a.b.c.d.example.com, only the final answer for
+a.b.c.d.example.com is affected. All intermediate queries,
+e.g., for .com, .example.com, etc., MAY be cached as needed.<a href="#section-4-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="usage-stub">
+<section id="section-5">
+      <h2 id="name-requestor-usage-and-behavio">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-requestor-usage-and-behavio" class="section-name selfRef">Requestor Usage and Behavior</a>
+      </h2>
+<p id="section-5-1">Requestors MAY include a "PRIVATE" option for any query deemed private or
+sensitive. This may include queries for explicitly known-to-be private
+domains or for all domains when operating in a "private" mode. Specific
+recommendations for when to include this option are outside the scope
+of this document.<a href="#section-5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="usage-recursive">
+<section id="section-6">
+      <h2 id="name-responder-usage-and-behavio">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-responder-usage-and-behavio" class="section-name selfRef">Responder Usage and Behavior</a>
+      </h2>
+<p id="section-6-1">There are two ways responders can handle a "PRIVATE" option.
+If present, responders MUST not cache any final answer for longer
+than N seconds. N is a deployment- and instance-specific variable
+that changes based on responder load and client pool. Larger values
+of N make probing attacks more feasible.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">((OPEN ISSUE: determine if N &gt; 0 is an acceptable trade-off))<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3">Responders MAY cache any intermediate answer used to produce the final response.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">In cases where responders need to reduce upstream redundant queries, e.g.,
+because they are expensive or otherwise reveal more information to authoritative
+servers, there are (at least) responders MAY adjust their cache policy to handle
+private queries with per-client, segmented caches. This approach works as follows:<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-5">Responders that receive a query Q without the "Private" options may treat
+it as normal, i.e., by serving a response from cache if available. For a query Q
+with a "Private" option sent from client S, responders MUST do the following:<a href="#section-6-5" class="pilcrow">¶</a></p>
 <ul>
-<li>Index S&#8217;s private cache using Q, if it exists. If response R is present, serve it to S.</li>
-<li>If S&#8217;s private cache does not exist, attempt to resolve Q as normal. Cache the response in S&#8217;s private cache.</li>
+<li id="section-6-6.1">Index S's private cache using Q, if it exists. If response R is present, serve it to S.<a href="#section-6-6.1" class="pilcrow">¶</a>
+</li>
+<li id="section-6-6.2">If S's private cache does not exist, attempt to resolve Q as normal. Cache the response
+in S's private cache.<a href="#section-6-6.2" class="pilcrow">¶</a>
+</li>
 </ul>
-<p id="rfc.section.6.p.7">When S&#8217;s connection to R is torn down, S&#8217;s private cache MUST be flushed and memory released.  Responders SHOULD apply whatever per-client caching policy is sensible to balance utility amongst shared (non-private) and private caches. Segmented caches introduce more memory requirements for resolvers at the cost of improving client privacy.</p>
-<p id="rfc.section.6.p.8">This approach is only viable when clients connect to resolvers over a mechanism that provides the server with a way to uniquely identify clients in a validated way.  For transports such as DNS-over-HTTPS (DOH) <a href="#I-D.ietf-doh-dns-over-https" class="xref">[I-D.ietf-doh-dns-over-https]</a>, this can be the incoming IP and port pair, or a client certificate. Otherwise, malicious clients may flood resolvers with private queries and induce cache fragmentation.</p>
-<h1 id="rfc.section.7">
-<a href="#rfc.section.7">7.</a> <a href="#dns-over-https-application" id="dns-over-https-application">DNS-over-HTTPS Application</a>
-</h1>
-<p id="rfc.section.7.p.1">A similar per-query &#8220;no-cache&#8221; flag may be implemented with DNS-over-HTTPS <a href="#I-D.ietf-doh-dns-over-https" class="xref">[I-D.ietf-doh-dns-over-https]</a> by appending a random nonce to each request. Specifically, given a random N-byte nonce R, the following query parameter can be appended to a DOH query:</p>
+<p id="section-6-7">When S's connection to R is torn down, S's private cache MUST be flushed and memory released.
+Responders SHOULD apply whatever per-client caching policy is sensible to balance utility
+amongst shared (non-private) and private caches. Segmented caches introduce more memory
+requirements for resolvers at the cost of improving client privacy.<a href="#section-6-7" class="pilcrow">¶</a></p>
+<p id="section-6-8">This approach is only viable when clients connect to resolvers over a mechanism that
+provides the server with a way to uniquely identify clients in a validated way.
+For transports such as DNS-over-HTTPS (DOH) <span>[<a href="#I-D.ietf-doh-dns-over-https" class="xref">I-D.ietf-doh-dns-over-https</a>]</span>,
+this can be the incoming IP and port pair, or a client certificate. Otherwise,
+malicious clients may flood resolvers with private queries and induce cache fragmentation.<a href="#section-6-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dns-over-https-application">
+<section id="section-7">
+      <h2 id="name-dns-over-https-application">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-dns-over-https-application" class="section-name selfRef">DNS-over-HTTPS Application</a>
+      </h2>
+<p id="section-7-1">A similar per-query "no-cache" flag may be implemented with DNS-over-HTTPS <span>[<a href="#I-D.ietf-doh-dns-over-https" class="xref">I-D.ietf-doh-dns-over-https</a>]</span> by
+appending a random nonce to each request. Specifically, given a random N-byte nonce
+R, the following query parameter can be appended to a DOH query:<a href="#section-7-1" class="pilcrow">¶</a></p>
+<div class="artwork art-text alignLeft" id="section-7-2">
 <pre>
 ?rand=R
-</pre>
-<p id="rfc.section.7.p.2">DOH recursive resolvers that use an HTTP caching layer to satisfy duplicate queries SHOULD not satisfy cached queries with the same &#8220;dns&#8221; parameter yet different (or no) &#8220;rand&#8221; parameter.</p>
-<h1 id="rfc.section.8">
-<a href="#rfc.section.8">8.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a>
-</h1>
-<p id="rfc.section.8.p.1">((TODO: codepoint for option type))</p>
-<h1 id="rfc.section.9">
-<a href="#rfc.section.9">9.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
-</h1>
-<p id="rfc.section.9.p.1">Clients that malicious mark all queries as private may induce excessive upstream responder traffic while responding said queries. However, as malicious clients may do this today by issuing queries for nonsensical or nonexistent domains, this does not introduce a new attack vector.</p>
-<h1 id="rfc.section.10">
-<a href="#rfc.section.10">10.</a> <a href="#privacy-considerations" id="privacy-considerations">Privacy Considerations</a>
-</h1>
-<p id="rfc.section.10.p.1">Selectively sending a private DNS query based on user behavior leaks information about user behavior or system policy. For example, if clients only send private queries while in a certain system configuration, then presence of a &#8220;Private&#8221; option indicates, with high probability, that the origin user&#8217;s device is in such a configuration. This could be addressed by marking queries as private &#8211; at random or unilaterally &#8211; such that system configurations are indistinguishable under observation of the &#8220;Private&#8221; option.</p>
-<h1 id="rfc.section.11">
-<a href="#rfc.section.11">11.</a> <a href="#acknowledgments" id="acknowledgments">Acknowledgments</a>
-</h1>
-<p id="rfc.section.11.p.1">The authors thank Georgios Kontaxis for feedback on earlier versions of this document.</p>
-<h1 id="rfc.references">
-<a href="#rfc.references">12.</a> References</h1>
-<h1 id="rfc.references.1">
-<a href="#rfc.references.1">12.1.</a> Normative References</h1>
-<table><tbody>
-<tr>
-<td class="reference"><b id="Acs17">[Acs17]</b></td>
-<td class="top">"<a href="http://ieeexplore.ieee.org/document/7874168/">Privacy-Aware Caching in Information-Centric Networking</a>", n.d..</td>
-</tr>
-<tr>
-<td class="reference"><b id="I-D.ietf-dprive-padding-policy">[I-D.ietf-dprive-padding-policy]</b></td>
-<td class="top">
-<a>Mayrhofer, A.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-dprive-padding-policy-04">Padding Policy for EDNS(0)</a>", Internet-Draft draft-ietf-dprive-padding-policy-04, February 2018.</td>
-</tr>
-<tr>
-<td class="reference"><b id="I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</b></td>
-<td class="top">
-<a>Rescorla, E.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-tls-tls13-28">The Transport Layer Security (TLS) Protocol Version 1.3</a>", Internet-Draft draft-ietf-tls-tls13-28, March 2018.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC1035">[RFC1035]</b></td>
-<td class="top">
-<a>Mockapetris, P.</a>, "<a href="https://tools.ietf.org/html/rfc1035">Domain names - implementation and specification</a>", STD 13, RFC 1035, DOI 10.17487/RFC1035, November 1987.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC2104">[RFC2104]</b></td>
-<td class="top">
-<a>Krawczyk, H.</a>, <a>Bellare, M.</a> and <a>R. Canetti</a>, "<a href="https://tools.ietf.org/html/rfc2104">HMAC: Keyed-Hashing for Message Authentication</a>", RFC 2104, DOI 10.17487/RFC2104, February 1997.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC4033">[RFC4033]</b></td>
-<td class="top">
-<a>Arends, R.</a>, <a>Austein, R.</a>, <a>Larson, M.</a>, <a>Massey, D.</a> and <a>S. Rose</a>, "<a href="https://tools.ietf.org/html/rfc4033">DNS Security Introduction and Requirements</a>", RFC 4033, DOI 10.17487/RFC4033, March 2005.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC5077">[RFC5077]</b></td>
-<td class="top">
-<a>Salowey, J.</a>, <a>Zhou, H.</a>, <a>Eronen, P.</a> and <a>H. Tschofenig</a>, "<a href="https://tools.ietf.org/html/rfc5077">Transport Layer Security (TLS) Session Resumption without Server-Side State</a>", RFC 5077, DOI 10.17487/RFC5077, January 2008.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC6891">[RFC6891]</b></td>
-<td class="top">
-<a>Damas, J.</a>, <a>Graff, M.</a> and <a>P. Vixie</a>, "<a href="https://tools.ietf.org/html/rfc6891">Extension Mechanisms for DNS (EDNS(0))</a>", STD 75, RFC 6891, DOI 10.17487/RFC6891, April 2013.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC7830">[RFC7830]</b></td>
-<td class="top">
-<a>Mayrhofer, A.</a>, "<a href="https://tools.ietf.org/html/rfc7830">The EDNS(0) Padding Option</a>", RFC 7830, DOI 10.17487/RFC7830, May 2016.</td>
-</tr>
-<tr>
-<td class="reference"><b id="RFC7858">[RFC7858]</b></td>
-<td class="top">
-<a>Hu, Z.</a>, <a>Zhu, L.</a>, <a>Heidemann, J.</a>, <a>Mankin, A.</a>, <a>Wessels, D.</a> and <a>P. Hoffman</a>, "<a href="https://tools.ietf.org/html/rfc7858">Specification for DNS over Transport Layer Security (TLS)</a>", RFC 7858, DOI 10.17487/RFC7858, May 2016.</td>
-</tr>
-</tbody></table>
-<h1 id="rfc.references.2">
-<a href="#rfc.references.2">12.2.</a> Informative References</h1>
-<table><tbody><tr>
-<td class="reference"><b id="I-D.ietf-doh-dns-over-https">[I-D.ietf-doh-dns-over-https]</b></td>
-<td class="top">
-<a>Hoffman, P.</a> and <a>P. McManus</a>, "<a href="https://tools.ietf.org/html/draft-ietf-doh-dns-over-https-10">DNS Queries over HTTPS (DOH)</a>", Internet-Draft draft-ietf-doh-dns-over-https-10, June 2018.</td>
-</tr></tbody></table>
-<h1 id="rfc.appendix.A">
-<a href="#rfc.appendix.A">Appendix A.</a> <a href="#artificial-delays" id="artificial-delays">Artificial Delays</a>
-</h1>
-<p id="rfc.section.A.p.1">An alternative mechanism to support caching without inducing upstream traffic is for responders to &#8220;ignore&#8221; cached responses and emulate fetch delays for queries marked private. This variation may work as follows:</p>
-<p id="rfc.section.A.p.2">Responders that receive a query Q with &#8220;Private&#8221; options MUST do one of the following to satisfy Q:</p>
-<p></p>
-
-<ol>
-<li>If response R is not cached, resolve Q using upstream authoritative or recursive resolvers.</li>
-<li>If response R is cached, ignore R and attempt to resolve Q using upstream authoritative or recursive resolvers.</li>
-<li>If response R is cached, delay sending R to the requestor until some time T has passed. T is a random variable with distribution equal to the resolution distribution time of R.</li>
-</ol>
-<h1 id="rfc.appendix.A.1">
-<a href="#rfc.appendix.A.1">A.1.</a> <a href="#delay-distributions" id="delay-distributions">Delay Distributions</a>
-</h1>
-<p id="rfc.section.A.1.p.1">T measurement and distribution estimation is critical for masking the timing side channel described in Section <a href="#introduction" class="xref">Section 1</a>. Both should be chosen to maximize requestor utility while minimizing responder overhead.  We draw on observations and experiments by <a href="#Acs17" class="xref">[Acs17]</a> in deciding these factors.</p>
-<p id="rfc.section.A.1.p.2">Responders SHOULD measure query resolution time T&#8217; and use this in selecting T&#8217;s distribution. There are two recommended delay strategies for responders assuming knowledge of T&#8217;, including:</p>
-<p></p>
-
-<ol>
-<li>Uniform: Delay for some time T* that is selected uniformly at random in the range [0, T&#8217;], i.e,. with probability distribution function Pr[T = t] = 1/T&#8217;.</li>
-<li>Geometric: Delay for some time T* that is selected according to a geometric distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k, where k is a parameter for the distribution.</li>
-</ol>
-<h1 id="rfc.authors"><a href="#rfc.authors">Authors' Addresses</a></h1>
-<div class="avoidbreak">
-  <address class="vcard">
-	<span class="vcardline">
-	  <span class="fn">Olafur Gudmundsson</span> 
-	  <span class="n hidden">
-		<span class="family-name">Gudmundsson</span>
-	  </span>
-	</span>
-	<span class="org vcardline">Cloudflare Inc.</span>
-	<span class="adr">
-	  
-	  <span class="vcardline">
-		<span class="locality"></span> 
-		<span class="region"></span>
-		<span class="code"></span>
-	  </span>
-	  <span class="country-name vcardline"></span>
-	</span>
-	<span class="vcardline">EMail: <a href="mailto:olafur+ietf@cloudflare.com">olafur+ietf@cloudflare.com</a></span>
-
-  </address>
-</div><div class="avoidbreak">
-  <address class="vcard">
-	<span class="vcardline">
-	  <span class="fn">Nick Sullivan</span> 
-	  <span class="n hidden">
-		<span class="family-name">Sullivan</span>
-	  </span>
-	</span>
-	<span class="org vcardline">Cloudflare Inc.</span>
-	<span class="adr">
-	  
-	  <span class="vcardline">
-		<span class="locality"></span> 
-		<span class="region"></span>
-		<span class="code"></span>
-	  </span>
-	  <span class="country-name vcardline"></span>
-	</span>
-	<span class="vcardline">EMail: <a href="mailto:nick@cloudflare.com">nick@cloudflare.com</a></span>
-
-  </address>
-</div><div class="avoidbreak">
-  <address class="vcard">
-	<span class="vcardline">
-	  <span class="fn">Christopher A. Wood</span> 
-	  <span class="n hidden">
-		<span class="family-name">Wood</span>
-	  </span>
-	</span>
-	<span class="org vcardline">Apple Inc.</span>
-	<span class="adr">
-	  <span class="vcardline">1 Infinite Loop</span>
-
-	  <span class="vcardline">
-		<span class="locality">Cupertino, California 95014</span>,  
-		<span class="region"></span>
-		<span class="code"></span>
-	  </span>
-	  <span class="country-name vcardline">United States of America</span>
-	</span>
-	<span class="vcardline">EMail: <a href="mailto:cawood@apple.com">cawood@apple.com</a></span>
-
-  </address>
+</pre><a href="#section-7-2" class="pilcrow">¶</a>
 </div>
+<p id="section-7-3">DOH recursive resolvers that use an HTTP caching layer to satisfy duplicate queries
+SHOULD not satisfy cached queries with the same "dns" parameter yet different (or no)
+"rand" parameter.<a href="#section-7-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-8">
+      <h2 id="name-iana-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-8-1">((TODO: codepoint for option type))<a href="#section-8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-9">
+      <h2 id="name-security-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-9-1">Clients that malicious mark all queries as private may induce excessive upstream responder
+traffic while responding said queries. However, as malicious clients may do this today by issuing
+queries for nonsensical or nonexistent domains, this does not introduce a new attack vector.<a href="#section-9-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-10">
+      <h2 id="name-privacy-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-10-1">Selectively sending a private DNS query based on user behavior leaks information about user behavior
+or system policy. For example, if clients only send private queries while in a certain system
+configuration, then presence of a "Private" option indicates, with high probability, that the origin
+user's device is in such a configuration. This could be addressed by marking queries as private
+- at random or unilaterally - such that system configurations are indistinguishable under observation
+of the "Private" option.<a href="#section-10-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="section-11">
+      <h2 id="name-acknowledgments">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="section-11-1">The authors thank Georgios Kontaxis for feedback on earlier versions of this document.<a href="#section-11-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<section id="section-12">
+      <h2 id="name-references">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<section id="section-12.1">
+        <h3 id="name-normative-references">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="Acs17">[Acs17]</dt>
+<dd>
+<span class="refTitle">"Privacy-Aware Caching in Information-Centric Networking"</span>, <time></time>, <span>&lt;<a href="http://ieeexplore.ieee.org/document/7874168/">http://ieeexplore.ieee.org/document/7874168/</a>&gt;</span>. </dd>
+<dt id="RFC1035">[RFC1035]</dt>
+<dd>
+<span class="refAuthor">Mockapetris, P.V.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc1035">https://www.rfc-editor.org/info/rfc1035</a>&gt;</span>. </dd>
+<dt id="RFC4033">[RFC4033]</dt>
+<dd>
+<span class="refAuthor">Arends, R.</span><span class="refAuthor">, Austein, R.</span><span class="refAuthor">, Larson, M.</span><span class="refAuthor">, Massey, D.</span><span class="refAuthor">, and S. Rose</span>, <span class="refTitle">"DNS Security Introduction and Requirements"</span>, <span class="seriesInfo">RFC 4033</span>, <span class="seriesInfo">DOI 10.17487/RFC4033</span>, <time datetime="2005-03">March 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc4033">https://www.rfc-editor.org/info/rfc4033</a>&gt;</span>. </dd>
+<dt id="RFC6891">[RFC6891]</dt>
+<dd>
+<span class="refAuthor">Damas, J.</span><span class="refAuthor">, Graff, M.</span><span class="refAuthor">, and P. Vixie</span>, <span class="refTitle">"Extension Mechanisms for DNS (EDNS(0))"</span>, <span class="seriesInfo">STD 75</span>, <span class="seriesInfo">RFC 6891</span>, <span class="seriesInfo">DOI 10.17487/RFC6891</span>, <time datetime="2013-04">April 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc6891">https://www.rfc-editor.org/info/rfc6891</a>&gt;</span>. </dd>
+<dt id="RFC7858">[RFC7858]</dt>
+<dd>
+<span class="refAuthor">Hu, Z.</span><span class="refAuthor">, Zhu, L.</span><span class="refAuthor">, Heidemann, J.</span><span class="refAuthor">, Mankin, A.</span><span class="refAuthor">, Wessels, D.</span><span class="refAuthor">, and P. Hoffman</span>, <span class="refTitle">"Specification for DNS over Transport Layer Security (TLS)"</span>, <span class="seriesInfo">RFC 7858</span>, <span class="seriesInfo">DOI 10.17487/RFC7858</span>, <time datetime="2016-05">May 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/info/rfc7858">https://www.rfc-editor.org/info/rfc7858</a>&gt;</span>. </dd>
+</dl>
+</section>
+<section id="section-12.2">
+        <h3 id="name-informative-references">
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-doh-dns-over-https">[I-D.ietf-doh-dns-over-https]</dt>
+<dd>
+<span class="refAuthor">Hoffman, P.</span><span class="refAuthor"> and P. McManus</span>, <span class="refTitle">"DNS Queries over HTTPS (DoH)"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-doh-dns-over-https-14</span>, <time datetime="2018-08-16">16 August 2018</time>, <span>&lt;<a href="http://www.ietf.org/internet-drafts/draft-ietf-doh-dns-over-https-14.txt">http://www.ietf.org/internet-drafts/draft-ietf-doh-dns-over-https-14.txt</a>&gt;</span>. </dd>
+</dl>
+</section>
+</section>
+<div id="artificial-delays">
+<section id="section-appendix.a">
+      <h2 id="name-artificial-delays">
+<a href="#section-appendix.a" class="section-number selfRef">Appendix A. </a><a href="#name-artificial-delays" class="section-name selfRef">Artificial Delays</a>
+      </h2>
+<p id="section-appendix.a-1">An alternative mechanism to support caching without inducing upstream
+traffic is for responders to "ignore" cached responses and emulate fetch
+delays for queries marked private. This variation may work as follows:<a href="#section-appendix.a-1" class="pilcrow">¶</a></p>
+<p id="section-appendix.a-2">Responders that receive a query Q with "Private" options MUST do one
+of the following to satisfy Q:<a href="#section-appendix.a-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal" id="section-appendix.a-3">
+        <li id="section-appendix.a-3.1">If response R is not cached, resolve Q using upstream
+authoritative or recursive resolvers.<a href="#section-appendix.a-3.1" class="pilcrow">¶</a>
+</li>
+<li id="section-appendix.a-3.2">If response R is cached, ignore R and attempt to resolve Q
+using upstream authoritative or recursive resolvers.<a href="#section-appendix.a-3.2" class="pilcrow">¶</a>
+</li>
+<li id="section-appendix.a-3.3">If response R is cached, delay sending R to the requestor
+until some time T has passed. T is a random variable with distribution
+equal to the resolution distribution time of R.<a href="#section-appendix.a-3.3" class="pilcrow">¶</a>
+</li>
+</ol>
+<div id="delay-distributions">
+<section id="section-a.1">
+        <h2 id="name-delay-distributions">
+<a href="#section-a.1" class="section-number selfRef">A.1. </a><a href="#name-delay-distributions" class="section-name selfRef">Delay Distributions</a>
+        </h2>
+<p id="section-a.1-1">T measurement and distribution estimation is critical for masking the
+timing side channel described in Section <a href="#introduction" class="xref">Section 1</a>. Both should
+be chosen to maximize requestor utility while minimizing responder overhead.
+We draw on observations and experiments by <span>[<a href="#Acs17" class="xref">Acs17</a>]</span> in deciding these factors.<a href="#section-a.1-1" class="pilcrow">¶</a></p>
+<p id="section-a.1-2">Responders SHOULD measure query resolution time T' and use this in selecting
+T's distribution. There are two recommended delay strategies for responders
+assuming knowledge of T', including:<a href="#section-a.1-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal" id="section-a.1-3">
+          <li id="section-a.1-3.1">Uniform: Delay for some time T* that is selected uniformly at random
+in the range [0, T'], i.e,. with probability distribution function Pr[T = t] = 1/T'.<a href="#section-a.1-3.1" class="pilcrow">¶</a>
+</li>
+<li id="section-a.1-3.2">Geometric: Delay for some time T* that is selected according to a geometric
+distribution, i.e., with probability distribution function Pr[T = t] = (1 - t) * t^k,
+where k is a parameter for the distribution.<a href="#section-a.1-3.2" class="pilcrow">¶</a>
+</li>
+</ol>
+</section>
+</div>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="section-appendix.b">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Olafur Gudmundsson</span></div>
+<div dir="auto" class="left"><span class="org">Cloudflare Inc.</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:olafur+ietf@cloudflare.com" class="email">olafur+ietf@cloudflare.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Nick Sullivan</span></div>
+<div dir="auto" class="left"><span class="org">Cloudflare Inc.</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:nick@cloudflare.com" class="email">nick@cloudflare.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Christopher A. Wood</span></div>
+<div dir="auto" class="left"><span class="org">Apple Inc.</span></div>
+<div dir="auto" class="left"><span class="street-address">1 Infinite Loop</span></div>
+<div dir="auto" class="left">
+<span class="locality">Cupertino, California 95014</span>,  </div>
+<div dir="auto" class="left"><span class="country-name">United States of America</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:cawood@apple.com" class="email">cawood@apple.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>var toc = document.getElementById("toc");
+var tocToggle = toc.querySelector("h2");
+var tocNav = toc.querySelector("nav");
 
+// mobile menu toggle
+tocToggle.onclick = function(event) {
+    if (window.innerWidth < 1024) {
+ var tocNavDisplay = tocNav.currentStyle ? tocNav.currentStyle.display : getComputedStyle(tocNav, null).display;
+ if (tocNavDisplay == "none") {
+     tocNav.style.display = "block";
+ } else {
+     tocNav.style.display = "none";
+ }
+    }
+}
+
+// toc anchor scroll to anchor
+tocNav.addEventListener("click", function (event) {
+    event.preventDefault();
+    if (event.target.nodeName == 'A') {
+ if (window.innerWidth < 1024) {
+     tocNav.style.display = "none";
+ }
+ var href = event.target.getAttribute("href");
+ var anchorId = href.substr(1);
+ var anchor =  document.getElementById(anchorId);
+ anchor.scrollIntoView(true);
+ window.history.pushState("","",href);
+    }
+});
+
+// switch toc mode when window resized
+window.onresize = function () {
+    if (window.innerWidth < 1024) {
+ tocNav.style.display = "none";
+    } else {
+ tocNav.style.display = "block";
+    }
+}
+</script>
 </body>
 </html>
